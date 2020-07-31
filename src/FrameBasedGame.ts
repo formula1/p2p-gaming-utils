@@ -12,8 +12,6 @@ type Actions = {
 
 export abstract class Game {
   clock: Clock;
-  msPerFrame: number;
-  lastTime: number;
   frame: number = 0
   random: MersenneTwister;
   actions: {
@@ -29,16 +27,12 @@ export abstract class Game {
   }
 
   doFrame(){
-    var lastTime = this.lastTime
-    var curTime = Date.now();
-    var delta = curTime - lastTime;
     requestAnimationFrame(()=>{
       this.doFrame()
     })
-    if(delta < this.msPerFrame){
+    if(!this.clock.checkTime()){
       return;
     }
-    this.lastTime = curTime - (delta - this.msPerFrame);
 
     const frameNumber: number = this.frame;
     var actions = this.actions[frameNumber];
@@ -50,11 +44,13 @@ export abstract class Game {
 
     })
     this.logic();
-    this.render(this.msPerFrame);
+    this.render(this.clock.msPerFrame);
     this.frame++;
   }
 
+  sendAction(a: Action){
 
+  }
 
   storeAction(playerId: string, a: Action, targetFrame: number){
     if(this.frame >= targetFrame){

@@ -1,8 +1,16 @@
 
-interface Player {
+type PlayerListener = (action: string, targetFrame: number)=>any
+
+abstract class Player {
   id: string;
-  sendAction(selfId: string, action: string, targetFrame: number): Promise<any>;
-  listenToAction
+  listeners: Array<PlayerListener>
+  abstract sendAction(selfId: string, action: string, targetFrame: number): Promise<any>;
+  listenToAction(listener: PlayerListener): any {
+    this.listeners.push(listener)
+  }
+  removeListeners(): void {
+    this.listeners = [];
+  }
 }
 
 class SelfPlayer {
@@ -15,11 +23,24 @@ class PlayerGroup {
   selfId: string;
   players: {
     [id: string]: Player
-  }
+  } = {}
   actions: {
     [frame: number]: {
       [playerId: string]: Array<string>,
     }
+  } = {};
+
+  constructor(players: Array<Player>){
+    players.map((player: Player)=>{
+      this.players[player.id] = player;
+      player.listenToAction
+    })
+  }
+
+  removePlayer(playerId:string){
+    var player = this.players[playerId];
+    delete this.players[playerId];
+    player.removeListeners()
   }
 
   broadcastAction(action: string){
@@ -49,6 +70,11 @@ class PlayerGroup {
   }
 
 
-  get
+  popActions(){
+    var actions = this.actions[this.currentFrame];
+    delete this.actions[this.currentFrame];
+    this.currentFrame++;
+    return actions || {};
+  }
 
 }
