@@ -1,0 +1,37 @@
+{
+  "name": "todo-apis",
+  "version": "1.0.3",
+  "description": "",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "browserify": {
+    "transform": [
+      "require-solidity"
+    ]
+  },
+  "scripts": {
+    "prepublish": "rimraf ./dist && tsc",
+    "build": "rimraf ./dist && tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/bignumber.js": "^5.0.0",
+    "@types/isomorphic-fetch": "0.0.35",
+    "@types/node": "^12.11.1",
+    "@types/web3": "^1.0.20",
+    "require-solidity": "github:formula1/require-solidity",
+    "rimraf": "^3.0.0",
+    "typescript": "^3.6.4"
+  },
+  "dependencies": {
+    "bignumber.js": "^9.0.0",
+    "es6-promise": "^4.2.8",
+    "isomorphic-fetch": "^2.2.1",
+    "ts-inline-webworker": "^1.0.3",
+    "web3": "^1.2.1",
+    "web3-eth": "^1.2.1",
+    "web3-eth-contract": "^1.2.1"
+  }
+}
