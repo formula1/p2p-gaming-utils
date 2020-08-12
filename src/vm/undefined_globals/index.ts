@@ -10,7 +10,7 @@ import {
   SHARED_GLOBALS
 } from "./shared";
 
-export const GLOBALS = [].concat(
+export const UNDEFINED_GLOBALS = [].concat(
   BROWSER_GLOBALS
 ).concat(
   NODE_GLOBALS
