@@ -4,15 +4,24 @@ import { Passport } from "passport";
 import {
   UserModel, IUser
 } from "../models/User";
-
+import session from 'express-session';
+import MongoStoreCreate from 'connect-mongo';
+import CookieParser from "cookie-parser";
+import { Connection } from "mongoose"
+import * as fs from "fs";
+import * as path from "path"
 
 type CreateRouterArg = {
-  strategies: Array<string>,
+  strategyFolder: string,
   locationOrigin:  string, // https://www.w3schools.com:4097
-  sessionSecret: string
+  sessionSecret: string,
+  mongooseConnection: Connection
 };
 
 function setupPassport(arg: CreateRouterArg){
+
+  const MongoStore = MongoStoreCreate(session);
+
   const passport = new Passport();
   const router = Router();
 
@@ -26,10 +35,21 @@ function setupPassport(arg: CreateRouterArg){
     });
   });
 
-  router.use(require('cookie-parser')());
-  router.use(require('express-session')({
-    secret: arg.sessionSecret, resave: true, saveUninitialized: true
-  }));
+  router.use((req, res, next)=>{
+    console.log("passport router");
+    next();
+  })
+  router.use(CookieParser());
+  router.use(
+    session({
+        secret: arg.sessionSecret,
+        resave: true,
+        saveUninitialized: true,
+        store: new MongoStore({
+          mongooseConnection: arg.mongooseConnection
+        })
+    })
+  );
   router.use(passport.initialize());
   router.use(passport.session());
 
@@ -38,21 +58,27 @@ function setupPassport(arg: CreateRouterArg){
     res.redirect('/');
   });
 
-  arg.strategies.forEach((strategyName)=>{
+  fs.readdirSync(arg.strategyFolder).forEach((strategyJson)=>{
+
+    const strategyName = path.basename(strategyJson, '.json');
+    console.log()
     var strategy = createStrategy({
       strategyName: strategyName,
       locationOrigin: arg.locationOrigin
     });
+    console.log(strategyName, strategy)
     passport.use(strategy)
 
     router.get(`/auth/${strategyName}`,
-      passport.authorize(strategyName, { failureRedirect: '/logout' })
+      passport.authorize(strategy.name, { failureRedirect: '/logout' })
     );
 
     router.get(`/auth/${strategyName}/callback`,
-      passport.authorize(strategyName, { failureRedirect: '/logout' }),
+      passport.authorize(strategy.name, { failureRedirect: '/logout' }),
       function(req, res) {
         var user = req.user;
+        console.log(user);
+        res.redirect("/");
       }
     );
   })

@@ -1,0 +1,71 @@
+version: '3'
+services:
+  # ui:
+  #   image: "node:12.8"
+  #   user: "node"
+  #   working_dir: /home/node/app
+  #   volumes:
+  #     - ./web-app:/home/node/app
+  #     - ./shared:/home/node/shared
+  #   command: "npm run start:dev"
+  #   env_file:
+  #       - ./shared/.env
+  #       - ./shared/private.env
+  #       - ./shared/public_server.env
+  #   ports:
+  #     - ${PUBLIC_UI_PORT}:8080
+  #   restart: always
+
+  node:
+    image: "node:12.8"
+    user: "node"
+    working_dir: /home/node/app
+    volumes:
+      - ./server:/home/node/app
+      - ./shared:/home/node/shared
+    command: "npm run start:dev"
+    env_file:
+        - ./shared/.env
+        - ./shared/personal.env
+        - ./shared/private.env
+    links:
+      - mongo
+      # - live_server
+    ports:
+      - 8081:8080
+
+  # live_server:
+  #   image: "node:12.8"
+  #   user: "node"
+  #   working_dir: /home/node/app
+  #   volumes:
+  #     - ./servers/javascript-live:/home/node/app
+  #     - ./shared:/home/node/shared
+  #   command: "npm run start:dev"
+  #   env_file:
+  #       - ./shared/.env
+  #       - ./shared/personal.env
+  #       - ./shared/private.env
+  #   ports:
+  #     - ${PUBLIC_LIVE_PORT}:8080
+  #
+  mongo:
+    image: mongo
+    restart: always
+    volumes:
+      - ./database/mongo/hidden:/data/db
+      # - ./servers/mongo/config:/data/configdb
+      # - ./servers/mongo/hidden:/data/db
+    ports:
+        - "27017-27019:27017-27019"
+    env_file:
+        - ./shared/private.env
+
+  #
+  # ganache:
+  #   build: ./servers/ganache
+  #   ports:
+  #     - 8545:8545
+  #   volumes:
+  #     - ./servers/ganache/hidden:/ganache-db
+  #   command: "ganache-cli --db /ganache-db -h 0.0.0.0 -e 100 -m \"salmon bachelor whale biology effort dismiss regret much level scissors device whisper\""

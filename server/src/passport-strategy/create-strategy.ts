@@ -1,8 +1,14 @@
 import { Strategy } from "passport";
 import * as path from "path";
+import { Document } from "mongoose";
+
 import {
   UserLoginModel
 } from "../models/UserLogin"
+
+import {
+  IUser
+} from "../models/User"
 
 type StrategyArg = {
   strategyName: string,
@@ -19,15 +25,18 @@ type Profile = {
 }
 
 function createStrategy(arg: StrategyArg): Strategy {
+
+  console.log(arg);
+
   var { Strategy } = require(arg.strategyName);
-  var clientInfoJSON = require(path.join(__dirname, 'configs', `${arg.strategyName}.json`));
+  var clientInfoJSON = require(path.join(__dirname, 'hidden', `${arg.strategyName}.json`));
 
   return new Strategy(
     {
       ...clientInfoJSON,
       callbackURL: `${arg.locationOrigin}/auth/${arg.strategyName}/callback`
     },
-    function(accessToken, refreshToken, profile: Profile, cb) {
+    function(accessToken: any, refreshToken: any, profile: Profile, cb: (error: any, user: void | Document)=>any) {
 
       console.log(profile);
       UserLoginModel.findOrCreateUser({
@@ -37,7 +46,7 @@ function createStrategy(arg: StrategyArg): Strategy {
       }).then((user)=>{
         return cb(void 0, user);
       }, (err)=>{
-        return cb(err)
+        return cb(err, void 0)
       });
     }
   );
