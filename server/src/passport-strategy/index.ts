@@ -4,6 +4,10 @@ import { Passport } from "passport";
 import {
   UserModel, IUser
 } from "../models/User";
+import {
+  UserLoginModel
+} from "../models/UserLogin"
+
 import session from 'express-session';
 import MongoStoreCreate from 'connect-mongo';
 import CookieParser from "cookie-parser";
@@ -36,9 +40,9 @@ function setupPassport(arg: CreateRouterArg){
   });
 
   router.use((req, res, next)=>{
-    console.log("passport router");
     next();
   })
+
   router.use(CookieParser());
   router.use(
     session({
@@ -58,30 +62,75 @@ function setupPassport(arg: CreateRouterArg){
     res.redirect('/');
   });
 
-  fs.readdirSync(arg.strategyFolder).forEach((strategyJson)=>{
+  router.get('/auth/self', (req, res, next)=>{
+    if(!req.user){
+      res.status(200).json({})
+    }else{
+      res.status(200).json(req.user)
+    }
+  })
 
+  const strategies = fs.readdirSync(arg.strategyFolder).map((strategyJson)=>{
     const strategyName = path.basename(strategyJson, '.json');
-    console.log()
-    var strategy = createStrategy({
+    const strategy = createStrategy({
       strategyName: strategyName,
       locationOrigin: arg.locationOrigin
     });
-    console.log(strategyName, strategy)
     passport.use(strategy)
 
     router.get(`/auth/${strategyName}`,
-      passport.authorize(strategy.name, { failureRedirect: '/logout' })
+      passport.authenticate(strategy.name, { failureRedirect: '/logout' })
     );
 
     router.get(`/auth/${strategyName}/callback`,
-      passport.authorize(strategy.name, { failureRedirect: '/logout' }),
+      passport.authenticate(strategy.name, { failureRedirect: '/logout' }),
       function(req, res) {
+        // req.login(user, function(err) {
+        //   if (err) { return next(err); }
+        //   return res.redirect('/users/' + req.user.username);
+        // });
+
         var user = req.user;
-        console.log(user);
         res.redirect("/");
       }
     );
+
+    return {
+      name: strategy.name,
+      requireName: strategyName,
+      url: `/auth/${strategyName}`
+    }
   })
+
+  router.get('/auth/strategies', function(req, res){
+    if(!req.user){
+      return res.status(200).json(strategies)
+    }
+    UserLoginModel.find({
+      user: (req.user as IUser)._id
+    }).exec().then((userLogins)=>{
+      if(!userLogins || userLogins.length === 0){
+        var taggedStrategies = strategies.map((strategy)=>{
+          return {
+            ...strategy,
+            hasProfile: false
+          }
+        });
+        return res.status(200).json(taggedStrategies)
+      }
+      var taggedStrategies = strategies.map((strategy)=>{
+        return {
+          ...strategy,
+          hasProfile: userLogins.some((userLogin)=>{
+            console.log(userLogin.strategy, strategy.requireName)
+            return userLogin.strategy === strategy.requireName
+          })
+        }
+      })
+      return res.status(200).json(taggedStrategies)
+    })
+  });
+
 
   return {
     passport,

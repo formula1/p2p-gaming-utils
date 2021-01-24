@@ -22,6 +22,12 @@ UserLoginSchema.methods.findUser = function(cb) {
   model("User").findById((this as any).user, cb)
 };
 
+type AddLoginForUserArg = {
+  userId: string,
+  strategy: string,
+  profileId: string,
+}
+
 type FindOrCreateArg = {
   strategy: string,
   profileId: string,
@@ -29,8 +35,50 @@ type FindOrCreateArg = {
 }
 
 type StaticFunctions = {
+  addLoginForUser: (arg: AddLoginForUserArg)=>Promise<Document<IUser>>,
   findOrCreateUser: (arg: FindOrCreateArg)=>Promise<Document<IUser>>
 }
+
+UserLoginSchema.static(
+  'addLoginForUser', function({
+    userId,
+    strategy,
+    profileId,
+  }: AddLoginForUserArg): Promise<Document<IUser>> {
+    const User = model("User");
+    const UserLogin = model("UserLogin");
+    return Promise.all([
+      User.findById(userId).exec(),
+      UserLogin.findOne(
+        {
+          strategy,
+          profileId
+        }
+      ).exec()
+    ])
+    .then(([user, profile]: [IUser, IUserLogin])=>{
+      if(!user){
+        throw new Error(`user ${userId} does not exist`)
+      }
+      if(profile){
+        console.log(profile, user);
+
+        if(profile.user.toString() === user._id.toString()){
+          return user;
+        }
+        throw new Error(`profile ${strategy} with id ${profileId} already exists`)
+      }
+      return UserLogin.create({
+        user: user._id,
+        strategy: strategy,
+        profileId: profileId
+      }).then(()=>{
+        return user;
+      })
+    })
+  }
+)
+
 
 UserLoginSchema.static(
   'findOrCreateUser', function({
@@ -52,6 +100,7 @@ UserLoginSchema.static(
       return User.create({
         name: userName
       }).then((user: IUser)=>{
+
         return UserLogin.create({
           user: user._id,
           strategy: strategy,

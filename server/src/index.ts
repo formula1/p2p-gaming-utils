@@ -35,7 +35,7 @@ const locationOrigin = `http${PUBLIC_SERVER_IS_SECURE==="true"?"s":""}://${PUBLI
 
 
 new Promise((res)=>{
-  setTimeout(res, 1000 * 3)
+  setTimeout(res, 1000 * 1)
 }).then(()=>{
   const {
     MONGO_DB_HOSTNAME,
@@ -83,6 +83,7 @@ new Promise((res)=>{
     mainRouter.use(passportSetup.router);
     res("ok");
   }).then(()=>{
+
     mainRouter.get("/", (req, res)=>{
       console.log("get /");
       res.status(200).sendFile(`${__dirname}/public/index.html`);
@@ -96,9 +97,8 @@ new Promise((res)=>{
 
     mainRouter.use(function (err: any, req: Request, res: Response, next: (err: any)=>any) {
       console.error(err.stack)
-      res.status(500).send('Something broke!')
+      res.status(500).send('Something broke! <br/> ' + err.message)
     })
-
 
   }).then(()=>{
 

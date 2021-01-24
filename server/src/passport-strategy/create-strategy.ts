@@ -1,7 +1,7 @@
 import { Strategy } from "passport";
 import * as path from "path";
 import { Document } from "mongoose";
-
+import { Request } from "express";
 import {
   UserLoginModel
 } from "../models/UserLogin"
@@ -26,28 +26,46 @@ type Profile = {
 
 function createStrategy(arg: StrategyArg): Strategy {
 
-  console.log(arg);
-
   var { Strategy } = require(arg.strategyName);
   var clientInfoJSON = require(path.join(__dirname, 'hidden', `${arg.strategyName}.json`));
 
   return new Strategy(
     {
       ...clientInfoJSON,
-      callbackURL: `${arg.locationOrigin}/auth/${arg.strategyName}/callback`
+      callbackURL: `${arg.locationOrigin}/auth/${arg.strategyName}/callback`,
+      passReqToCallback: true
     },
-    function(accessToken: any, refreshToken: any, profile: Profile, cb: (error: any, user: void | Document)=>any) {
+    function(
+      req: Request,
+      accessToken: any,
+      refreshToken: any,
+      profile: Profile,
+      cb: (error: any, user: void | Document)=>any
+    ) {
 
-      console.log(profile);
-      UserLoginModel.findOrCreateUser({
-        strategy: arg.strategyName,
-        profileId: profile.id,
-        userName: profile.displayName
-      }).then((user)=>{
-        return cb(void 0, user);
-      }, (err)=>{
-        return cb(err, void 0)
-      });
+      if(req.user){
+        UserLoginModel.addLoginForUser({
+          userId: (req.user as IUser)._id,
+          strategy: arg.strategyName,
+          profileId: profile.id,
+        }).then((user)=>{
+          return cb(void 0, user);
+        }, (err)=>{
+          return cb(err, void 0)
+        })
+
+      }else{
+        UserLoginModel.findOrCreateUser({
+          strategy: arg.strategyName,
+          profileId: profile.id,
+          userName: profile.displayName
+        }).then((user)=>{
+          return cb(void 0, user);
+        }, (err)=>{
+          return cb(err, void 0)
+        });
+      }
+
     }
   );
 }
