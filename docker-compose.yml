@@ -16,7 +16,7 @@ services:
   #     - ${PUBLIC_UI_PORT}:8080
   #   restart: always
 
-  node:
+  api:
     image: "node:12.8"
     user: "node"
     working_dir: /home/node/app
@@ -25,14 +25,14 @@ services:
       - ./shared:/home/node/shared
     command: "npm run start:dev"
     env_file:
-        - ./shared/.env
+        - ./shared/public.env
         - ./shared/personal.env
         - ./shared/private.env
     links:
       - mongo
       # - live_server
     ports:
-      - 8081:8080
+      - ${PUBLIC_SERVER_PORT}:8080
 
   # live_server:
   #   image: "node:12.8"
