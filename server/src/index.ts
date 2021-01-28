@@ -7,6 +7,9 @@ import ExpressApp, {
   Response,
   Request
 } from "express"
+
+import cors from "cors";
+
 import {
   setupPassport
 } from "./passport-strategy";
@@ -70,6 +73,8 @@ new Promise((res)=>{
 }).then(()=>{
   console.log("connected to mongoose")
   const mainRouter = ExpressApp();
+
+  mainRouter.use(cors());
 
   return new Promise((res)=>{
 

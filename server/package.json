@@ -21,6 +21,7 @@
   "devDependencies": {
     "@types/bignumber.js": "^5.0.0",
     "@types/cookie-parser": "^1.4.2",
+    "@types/cors": "^2.8.9",
     "@types/express-session": "^1.17.3",
     "@types/isomorphic-fetch": "0.0.35",
     "@types/node": "^12.11.1",
@@ -36,6 +37,7 @@
     "bignumber.js": "^9.0.0",
     "connect-mongo": "^3.2.0",
     "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
     "es6-promise": "^4.2.8",
     "express-session": "^1.17.1",
     "isomorphic-fetch": "^2.2.1",
