@@ -1,0 +1,15 @@
+#init {
+  width: 300px
+}
+
+.todo-header {
+  display: flex;
+  flex-direction: row;
+}
+.todo-header .todo-dates {
+  flex-grow: 1
+}
+
+.todo-header .todo-delete {
+  align-self: center;
+}

@@ -1,20 +1,18 @@
 version: '3'
 services:
-  # ui:
-  #   image: "node:12.8"
-  #   user: "node"
-  #   working_dir: /home/node/app
-  #   volumes:
-  #     - ./web-app:/home/node/app
-  #     - ./shared:/home/node/shared
-  #   command: "npm run start:dev"
-  #   env_file:
-  #       - ./shared/.env
-  #       - ./shared/private.env
-  #       - ./shared/public_server.env
-  #   ports:
-  #     - ${PUBLIC_UI_PORT}:8080
-  #   restart: always
+  ui:
+    image: "node:12.8"
+    user: "node"
+    working_dir: /home/node/app
+    volumes:
+      - ./client:/home/node/app
+      - ./shared:/home/node/shared
+    command: "npm run start:dev"
+    env_file:
+        - ./shared/public.env
+    ports:
+      - ${PUBLIC_UI_PORT}:8080
+    restart: always
 
   api:
     image: "node:12.8"
