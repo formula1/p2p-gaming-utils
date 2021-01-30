@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "lib": ["es5", "es6", "es2015", "dom"],
+    "lib": ["es5", "es6", "es2015"],
     "noImplicitAny": true,
     "module": "commonjs",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "target": "es5",
+    "target": "es6",
     "resolveJsonModule": true
   },
   "typeRoots": [

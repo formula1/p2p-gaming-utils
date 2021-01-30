@@ -28,6 +28,7 @@ function setupPassport(arg: CreateRouterArg){
 
   const passport = new Passport();
   const router = Router();
+  const middleware = Router();
 
   passport.serializeUser(function(user: IUser, done) {
     done(null, user._id);
@@ -43,8 +44,8 @@ function setupPassport(arg: CreateRouterArg){
     next();
   })
 
-  router.use(CookieParser());
-  router.use(
+  middleware.use(CookieParser());
+  middleware.use(
     session({
         secret: arg.sessionSecret,
         resave: true,
@@ -54,8 +55,8 @@ function setupPassport(arg: CreateRouterArg){
         })
     })
   );
-  router.use(passport.initialize());
-  router.use(passport.session());
+  middleware.use(passport.initialize());
+  middleware.use(passport.session());
 
   router.get('/logout', function(req, res){
     req.logout();
@@ -134,7 +135,8 @@ function setupPassport(arg: CreateRouterArg){
 
   return {
     passport,
-    router
+    router,
+    middleware
   }
 }
 

@@ -31,14 +31,16 @@
     "require-solidity": "github:formula1/require-solidity",
     "rimraf": "^3.0.0",
     "ts-node": "^9.1.1",
-    "typescript": "^3.6.4"
+    "typescript": "^4.1.3"
   },
   "dependencies": {
     "bignumber.js": "^9.0.0",
+    "common-messenger-interface": "github:formula1/JS-Messaging",
     "connect-mongo": "^3.2.0",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "es6-promise": "^4.2.8",
+    "express": "^4.17.1",
     "express-session": "^1.17.1",
     "isomorphic-fetch": "^2.2.1",
     "mongoose": "^5.11.13",

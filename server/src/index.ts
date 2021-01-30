@@ -6,13 +6,19 @@ import ExpressApp, {
   Router,
   Response,
   Request
-} from "express"
+} from "express";
 
 import cors from "cors";
 
 import {
   setupPassport
 } from "./passport-strategy";
+
+import { setupGame } from "./game";
+
+import {
+  indexHTML
+} from "./constants"
 
 var http, { Server } = require('http');
 var https = require('https');
@@ -85,13 +91,15 @@ new Promise((res)=>{
       mongooseConnection: mongoose.connection
     })
 
+    mainRouter.use(passportSetup.middleware);
     mainRouter.use(passportSetup.router);
     res("ok");
   }).then(()=>{
 
     mainRouter.get("/", (req, res)=>{
       console.log("get /");
-      res.status(200).sendFile(`${__dirname}/public/index.html`);
+      res.set('Content-Type', 'text/html');
+      res.status(200).send(indexHTML());
     });
 
     mainRouter.use(ExpressApp.static(`${__dirname}/public`))
@@ -102,7 +110,7 @@ new Promise((res)=>{
 
     mainRouter.use(function (err: any, req: Request, res: Response, next: (err: any)=>any) {
       console.error(err.stack)
-      res.status(500).send('Something broke! <br/> ' + err.message)
+      res.status(err.status ? err.status : 500).send('Something broke! <br/> ' + err.message)
     })
 
   }).then(()=>{
@@ -122,6 +130,10 @@ new Promise((res)=>{
       };
 
       server.on("request", mainRouter);
+
+      setupGame({
+        server: server
+      });
 
       return new Promise((res, rej)=>{
         server.listen(INTERNAL_START_PORT, (err: any)=>{
