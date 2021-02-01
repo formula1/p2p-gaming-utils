@@ -39,7 +39,7 @@ function setupGame(args: GameSetupArgs){
 
   var router = Router();
 
-  router.get("/lobby/available", (req, res)=>{
+  router.get("/gamelobby/available", (req, res)=>{
     GameLobbyModel.getAvailableGames().then((lobbies)=>{
       res.status(200).json(lobbies);
     }, (error)=>{
@@ -50,7 +50,7 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
-  router.get("/lobby/own", (req, res)=>{
+  router.get("/gamelobby/own", (req, res)=>{
     if(!req.user){
       return res.status(400).json({
         error: true,
@@ -68,7 +68,7 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
-  router.post('/lobby/create', bodyParser.json(), (req, res)=>{
+  router.post('/gamelobby/create', bodyParser.json(), (req, res)=>{
     if(!req.user){
       return res.status(400).json({
         error: true,
@@ -96,8 +96,7 @@ function setupGame(args: GameSetupArgs){
       })
     })
   })
-
-  router.get("/lobby/:id", (req, res)=>{
+  router.get("/gamelobby/:id", (req, res)=>{
     GameLobbyModel.findById(req.params.id)
     .then((resultDoc)=>{
       if(!resultDoc){
@@ -115,7 +114,7 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
-  router.get("/lobby/:id/join", (req, res)=>{
+  router.get("/gamelobby/:id/join", (req, res)=>{
     if(!req.user){
       return res.status(400).json({
         error: true,
@@ -144,7 +143,7 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
-  router.get("/lobby/:id/cancel", (req, res)=>{
+  router.get("/gamelobby/:id/cancel", (req, res)=>{
     if(!req.user){
       return res.status(400).json({
         error: true,
@@ -176,7 +175,7 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
-  router.get("/lobby/:id/cancel", (req, res)=>{
+  router.get("/gamelobby/:id/start", (req, res)=>{
     if(!req.user){
       return res.status(400).json({
         error: true,
