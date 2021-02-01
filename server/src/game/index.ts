@@ -77,6 +77,29 @@ function setupGame(args: GameSetupArgs){
     }
     var user = (req.user as IUser);
     var body = req.body;
+
+    var minUsers = body.minUsers ? parseInt(body.minUsers) : 2
+    var maxUsers = body.maxUsers ? parseInt(body.maxUsers) : 2
+
+    if(minUsers < 2){
+      return res.status(400).json({
+        error: true,
+        message: "Min users must be at least 2"
+      })
+    }
+    if(maxUsers < 2){
+      return res.status(400).json({
+        error: true,
+        message: "Max users must be at least 2"
+      })
+    }
+
+    if(minUsers > maxUsers){
+      return res.status(400).json({
+        error: true,
+        message: "Min users is greater than maxUsers"
+      })
+    }
     const doc = new GameLobbyModel({
       name: body.name,
       creator: user._id,
