@@ -231,3 +231,7 @@ function setupGame(args: GameSetupArgs){
   })
 
 }
+
+export {
+  setupGame
+}
