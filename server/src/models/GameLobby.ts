@@ -6,6 +6,7 @@ import {
 
 enum TypeOfGame {
   "TurnBased",
+  "SameTurn",
   "LockStep",
   "RollBack"
 }
