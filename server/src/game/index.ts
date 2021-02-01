@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { Server as HttpServer } from "http";
-import { Server as HttpsServer } from "https";
 import * as bodyParser from 'body-parser';
 
-import SocketIO from "socket.io";
+import * as socketIO from "socket.io";
+
+const SocketIOServer = socketIO.Server;
+type Socket = socketIO.Socket;
 
 import {
   UserModel, IUser
@@ -14,20 +16,25 @@ import {
 } from "../models/GameLobby";
 
 type GameSetupArgs = {
-  server: HttpServer | HttpsServer
+  server: HttpServer
 };
 
-function createGameSetup(args: GameSetupArgs){
+function setupGame(args: GameSetupArgs){
 
   var listeningForUpdates: {
-  };
+    [id: string]: Socket
+  } = {};
 
   var server = args.server;
-  var io = SocketIO(server);
+  var ioServer = new SocketIOServer(server);
+  const io = ioServer.of("/gamelobby");
 
-  io.on('connection', client => {
-    client.on('event', data => { /* … */ });
-    client.on('disconnect', () => { /* … */ });
+  io.on('connection', (client: Socket) => {
+    console.log(client.request)
+
+    client.on('disconnect', () => {
+      // delete listeningForUpdates
+    });
   });
 
   var router = Router();
@@ -78,6 +85,9 @@ function createGameSetup(args: GameSetupArgs){
       typeOfGame: body.typeOfGame,
     });
     return doc.save().then((resultDoc)=>{
+      Object.values(listeningForUpdates).forEach((socket)=>{
+        socket.send("update")
+      })
       res.status(200).json(resultDoc);
     }, (error)=>{
       res.status(400).json({
@@ -122,6 +132,9 @@ function createGameSetup(args: GameSetupArgs){
       }
       return resultDoc.joinLobby(user._id).then(()=>{
         res.status(200).json(resultDoc);
+        Object.values(listeningForUpdates).forEach((socket)=>{
+          socket.send("update")
+        })
       })
     }).catch((error)=>{
       res.status(400).json({
@@ -149,8 +162,12 @@ function createGameSetup(args: GameSetupArgs){
       if(resultDoc.creator !== user._id){
         throw new Error("the user is not the creator");
       }
-      return resultDoc.cancelLobby()
-      res.status(200).json(resultDoc);
+      return resultDoc.cancelLobby().then(()=>{
+        Object.values(listeningForUpdates).forEach((socket)=>{
+          socket.send("update")
+        })
+        res.status(200).json(resultDoc);
+      })
     }).catch((error)=>{
       res.status(400).json({
         error: true,
@@ -177,8 +194,12 @@ function createGameSetup(args: GameSetupArgs){
       if(resultDoc.creator !== user._id){
         throw new Error("the user is not the creator");
       }
-      return resultDoc.startLobby()
-      res.status(200).json(resultDoc);
+      return resultDoc.startLobby().then(()=>{
+        Object.values(listeningForUpdates).forEach((socket)=>{
+          socket.send("update")
+        })
+        res.status(200).json(resultDoc);
+      })
     }).catch((error)=>{
       res.status(400).json({
         error: true,
