@@ -6,7 +6,12 @@ import {
   RunOnce
 } from "./RunOnce"
 
+import {
+  RunIfNotRunning
+} from "./RunIfNotRunning";
+
 export {
   Queue,
-  RunOnce
+  RunOnce,
+  RunIfNotRunning
 }

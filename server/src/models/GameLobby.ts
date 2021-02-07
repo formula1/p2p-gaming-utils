@@ -5,11 +5,18 @@ import {
 } from "../utils/promise-utils";
 
 enum TypeOfGame {
-  "TurnBased",
-  "SameTurn",
-  "LockStep",
-  "RollBack"
+  "TurnBased" = "TurnBased",
+  "SameTurn" = "SameTurn",
+  "LockStep" = "LockStep",
+  "RollBack" = "RollBack"
 }
+
+const TypeOfGameValues = [
+  TypeOfGame.TurnBased,
+  TypeOfGame.SameTurn,
+  TypeOfGame.LockStep,
+  TypeOfGame.RollBack
+]
 const ObjectId = Types.ObjectId;
 type ObjectId = Types.ObjectId;
 
@@ -43,11 +50,7 @@ const GameLobbySchema = new Schema({
   maxUsers: {type: Number, default: 2},
   typeOfGame: {
     type: String,
-    enum : [
-      "TurnBased",
-      "LockStep",
-      "RollBack"
-    ],
+    enum : TypeOfGameValues,
     default: "TurnBased"
   },
   users: [{ type: ObjectId }],
@@ -137,5 +140,7 @@ const GameLobbyModel: Model<IGameLobby> & StaticFunctions = model('GameLobby', G
 
 export {
   IGameLobby,
-  GameLobbyModel
+  GameLobbyModel,
+  TypeOfGameValues,
+  TypeOfGame
 }

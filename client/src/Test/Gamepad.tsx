@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 
+// https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API
+
 type GamePadConnectListenerType = (e:GamepadEvent)=>any
 type GamePadButtonListenerType = (e:GamepadEvent)=>any
 
@@ -59,7 +61,7 @@ class MultipleGamePadsTestUI extends Component {
     return (
       <div>
       {this.state.gamePads.map((index)=>{
-        return <GamePadTestUI gamePad={index} />
+        return <GamePadTestUI key={index} gamePad={index} />
       })}
       </div>
     )
@@ -115,7 +117,7 @@ class GamePadTestUI extends Component<GamePadTestUIProps> {
           <ul>
             {this.state.axes.map((value, index)=>{
               return (
-                <li><span>Index: {index}</span><span>  -  </span><span>{value}</span></li>
+                <li key={index} ><span>Index: {index}</span><span>  -  </span><span>{value}</span></li>
               );
             })}
           </ul>
@@ -125,7 +127,7 @@ class GamePadTestUI extends Component<GamePadTestUIProps> {
           <ul>
             {this.state.buttons.map((value, index)=>{
               return (
-                <li><span>Button: {index}</span><span>  -  </span><span>{value.toString()}</span></li>
+                <li key={index} ><span>Button: {index}</span><span>  -  </span><span>{value.toString()}</span></li>
               );
             })}
           </ul>

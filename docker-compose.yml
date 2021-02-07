@@ -21,7 +21,7 @@ services:
     volumes:
       - ./server:/home/node/app
       - ./shared:/home/node/shared
-    command: "npm run start:dev"
+    command: "npm run watch:dev"
     env_file:
         - ./shared/public.env
         - ./shared/personal.env

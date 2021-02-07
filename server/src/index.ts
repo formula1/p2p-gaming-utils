@@ -104,14 +104,6 @@ new Promise((res)=>{
 
     mainRouter.use(ExpressApp.static(`${__dirname}/public`))
 
-    mainRouter.use(function (req, res, next) {
-      res.status(404).send("Sorry can't find that!")
-    })
-
-    mainRouter.use(function (err: any, req: Request, res: Response, next: (err: any)=>any) {
-      console.error(err.stack)
-      res.status(err.status ? err.status : 500).send('Something broke! <br/> ' + err.message)
-    })
 
   }).then(()=>{
 
@@ -131,15 +123,33 @@ new Promise((res)=>{
 
       server.on("request", mainRouter);
 
-      setupGame({
+      var { router: gameRouter } = setupGame({
         server: server
       });
+
+      mainRouter.use(gameRouter)
 
       return new Promise((res, rej)=>{
         server.listen(INTERNAL_START_PORT, (err: any)=>{
           err ? rej(err) : res(void 0);
         })
       })
+  }).then(()=>{
+    mainRouter.use(function (req, res, next) {
+      if(req.method !== "GET"){
+        var e = new Error(req.method + " - " + req.path + " does not exist");
+        (e as any).status = 404;
+        throw e;
+      }
+      console.log(req.method + " " + req.path);
+      res.set('Content-Type', 'text/html');
+      res.status(200).send(indexHTML());
+    })
+
+    mainRouter.use(function (err: any, req: Request, res: Response, next: (err: any)=>any) {
+      console.error(err.stack)
+      res.status(err.status ? err.status : 500).send('Something broke! <br/> ' + err.message)
+    })
   })
 
 }).then(()=>{

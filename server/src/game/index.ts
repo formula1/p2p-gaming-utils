@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { Server as HttpServer } from "http";
 import * as bodyParser from 'body-parser';
+import multer from "multer";
 
 import * as socketIO from "socket.io";
 
@@ -12,7 +13,9 @@ import {
 } from "../models/User";
 import {
   IGameLobby,
-  GameLobbyModel
+  GameLobbyModel,
+  TypeOfGameValues,
+  TypeOfGame
 } from "../models/GameLobby";
 
 type GameSetupArgs = {
@@ -20,6 +23,8 @@ type GameSetupArgs = {
 };
 
 function setupGame(args: GameSetupArgs){
+
+  const upload = multer();
 
   var listeningForUpdates: {
     [id: string]: Socket
@@ -68,54 +73,78 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
-  router.post('/gamelobby/create', bodyParser.json(), (req, res)=>{
+  router.post('/gamelobby/create', upload.none(), (req, res)=>{
+    console.log("POST", '/gamelobby/create')
     if(!req.user){
-      return res.status(400).json({
+      console.log("No user");
+      return res.status(401).json({
         error: true,
         message: "Not logged in"
       })
     }
     var user = (req.user as IUser);
-    var body = req.body;
 
-    var minUsers = body.minUsers ? parseInt(body.minUsers) : 2
-    var maxUsers = body.maxUsers ? parseInt(body.maxUsers) : 2
+    return Promise.resolve().then(()=>{
+      var body = req.body;
+      var name = body.name;
+      var minUsers = body.minUsers ? parseInt(body.minUsers) : 2
+      var maxUsers = body.maxUsers ? parseInt(body.maxUsers) : 2
+      var typeOfGame = body.typeOfGame;
+      if(name.length < 7){
+        throw new Error("Name of lobby must be at least 15 characters");
+      }
+      if(name.length > 255){
+        throw new Error("Name of lobby can be at max 255 characters");
+      }
 
-    if(minUsers < 2){
+      if(minUsers < 2){
+        throw new Error("Min users must be at least 2");
+      }
+      if(maxUsers < 2){
+        throw new Error("Max users must be at least 2");
+      }
+
+      if(minUsers > maxUsers){
+        throw new Error("Min users is greater than maxUsers");
+      }
+
+      if(!TypeOfGameValues.some((typeOfGameValue)=>{
+        return typeOfGameValue === typeOfGame
+      })){
+        throw new Error(
+          "Type of Game can only be one of the following: " + JSON.stringify(TypeOfGameValues)
+        )
+      }
+
+      return {
+        name: name,
+        minUsers: minUsers,
+        maxUsers: maxUsers,
+        typeOfGame: typeOfGame
+      }
+    }).then(
+      (values: {
+        name: string,
+        minUsers: number,
+        maxUsers: number,
+        typeOfGame: TypeOfGame
+      })=>{
+        const doc = new GameLobbyModel({
+          ...values,
+          creator: user._id,
+        });
+        return doc.save().then((resultDoc)=>{
+          Object.values(listeningForUpdates).forEach((socket)=>{
+            socket.send("update")
+          })
+          res.status(200).json(resultDoc);
+        })
+      }
+    ).catch((err)=>{
+      console.error(err);
       return res.status(400).json({
         error: true,
-        message: "Min users must be at least 2"
-      })
-    }
-    if(maxUsers < 2){
-      return res.status(400).json({
-        error: true,
-        message: "Max users must be at least 2"
-      })
-    }
-
-    if(minUsers > maxUsers){
-      return res.status(400).json({
-        error: true,
-        message: "Min users is greater than maxUsers"
-      })
-    }
-    const doc = new GameLobbyModel({
-      name: body.name,
-      creator: user._id,
-      minUsers: body.minUsers,
-      maxUsers: body.maxUsers,
-      typeOfGame: body.typeOfGame,
-    });
-    return doc.save().then((resultDoc)=>{
-      Object.values(listeningForUpdates).forEach((socket)=>{
-        socket.send("update")
-      })
-      res.status(200).json(resultDoc);
-    }, (error)=>{
-      res.status(400).json({
-        error: true,
-        message: error.message || error.toString()
+        message: err.message
       })
     })
   })
@@ -230,6 +259,7 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
+  return { router };
 }
 
 export {

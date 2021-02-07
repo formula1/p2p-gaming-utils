@@ -1,6 +1,24 @@
 import React, { Props } from "react";
 
 import {
+  PUBLIC_SERVER_ORIGIN,
+  PUBLIC_UI_ORIGIN
+} from "../API/constants"
+
+function LoginList(){
+  return (
+    <div>
+      <h2>Login</h2>
+      <ul>
+        <li><a href={PUBLIC_SERVER_ORIGIN + "/auth/passport-github"}>
+          <img src={PUBLIC_UI_ORIGIN + "/images/Octocat.png"} />
+        </a></li>
+      </ul>
+    </div>
+  )
+}
+
+import {
   getUser,
   getStrategies
 } from "./api";
@@ -40,5 +58,7 @@ function UserLogin(props: Props<{}>){
 }
 
 export {
-  UserLogin
+  UserLogin,
+  LoginList
+
 };
