@@ -30,15 +30,24 @@ function setupGame(args: GameSetupArgs){
     [id: string]: Socket
   } = {};
 
+  function broadcastSockets(key: string, value?: any){
+    Object.values(listeningForUpdates).forEach((socket)=>{
+      socket.emit(key, value);
+    })
+  }
+
   var server = args.server;
   var ioServer = new SocketIOServer(server);
   const io = ioServer.of("/gamelobby");
 
   io.on('connection', (client: Socket) => {
-    console.log(client.request)
+    console.log("socket io connection", Object.keys(client))
+
+    listeningForUpdates[client.id] = client
 
     client.on('disconnect', () => {
       // delete listeningForUpdates
+      delete listeningForUpdates[client.id];
     });
   });
 
@@ -134,9 +143,7 @@ function setupGame(args: GameSetupArgs){
           creator: user._id,
         });
         return doc.save().then((resultDoc)=>{
-          Object.values(listeningForUpdates).forEach((socket)=>{
-            socket.send("update")
-          })
+          broadcastSockets("update")
           res.status(200).json(resultDoc);
         })
       }
@@ -183,9 +190,7 @@ function setupGame(args: GameSetupArgs){
       }
       return resultDoc.joinLobby(user._id).then(()=>{
         res.status(200).json(resultDoc);
-        Object.values(listeningForUpdates).forEach((socket)=>{
-          socket.send("update")
-        })
+        broadcastSockets("update")
       })
     }).catch((error)=>{
       res.status(400).json({
@@ -210,13 +215,11 @@ function setupGame(args: GameSetupArgs){
           message: "Missing Lobby"
         })
       }
-      if(resultDoc.creator !== user._id){
+      if(resultDoc.creator.toString() !== user._id.toString()){
         throw new Error("the user is not the creator");
       }
       return resultDoc.cancelLobby().then(()=>{
-        Object.values(listeningForUpdates).forEach((socket)=>{
-          socket.send("update")
-        })
+        broadcastSockets("update")
         res.status(200).json(resultDoc);
       })
     }).catch((error)=>{
@@ -246,9 +249,7 @@ function setupGame(args: GameSetupArgs){
         throw new Error("the user is not the creator");
       }
       return resultDoc.startLobby().then(()=>{
-        Object.values(listeningForUpdates).forEach((socket)=>{
-          socket.send("update")
-        })
+        broadcastSockets("update")
         res.status(200).json(resultDoc);
       })
     }).catch((error)=>{

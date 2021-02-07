@@ -40,8 +40,9 @@ class GameLobbyList extends Component {
   }
 
   componentDidMount(){
-    this.socket = io("http://localhost:8081//gamelobby");
+    this.socket = io("http://localhost:8081/gamelobby");
     this.socket.on("update", ()=>{
+      console.log("socket update");
       return this.refreshLobbies()
     })
     return this.refreshLobbies();

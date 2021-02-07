@@ -60,6 +60,7 @@ function RenderGame(props: { game: GameLobbyType, self: User }){
         onClick={(e)=>{
           e.preventDefault();
           cancelGameLobby(game._id)
+           history.push("/lobby")
         }}
       >Cancel</button>
       <button
