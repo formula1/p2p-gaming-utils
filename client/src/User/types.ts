@@ -5,6 +5,13 @@ type User = {
   created: Date;
 }
 
+type LoginStrategy = {
+  name: string;
+  requireName: string;
+  url: string;
+}
+
 export {
-  User
+  User,
+  LoginStrategy
 }

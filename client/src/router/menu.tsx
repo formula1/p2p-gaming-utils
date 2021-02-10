@@ -15,10 +15,16 @@ function Menu(){
         <Link to="/">Home</Link>
       </li>
       <li>
+        <Link to="/game-pad">Game Pad Test</Link>
+      </li>
+      <li>
         <Link to="/lobby">Game Lobbies</Link>
       </li>
       <li>
         <Link to="/lobby/create">Create Lobby</Link>
+      </li>
+      <li>
+        <a href="/logout">Log Out</a>
       </li>
     </ul>
   );

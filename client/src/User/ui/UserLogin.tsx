@@ -1,33 +1,15 @@
-import React, { Props } from "react";
-
-import {
-  PUBLIC_SERVER_ORIGIN,
-  PUBLIC_UI_ORIGIN
-} from "../API/constants"
-
-function LoginList(){
-  return (
-    <div>
-      <h2>Login</h2>
-      <ul>
-        <li><a href={PUBLIC_SERVER_ORIGIN + "/auth/passport-github"}>
-          <img src={PUBLIC_UI_ORIGIN + "/images/Octocat.png"} />
-        </a></li>
-      </ul>
-    </div>
-  )
-}
+import * as React from "react";
 
 import {
   getUser,
   getStrategies
-} from "./api";
+} from "../api";
 
 import {
   UserContext
-} from "./context";
+} from "../context";
 
-function UserLogin(props: Props<{}>){
+function UserLogin(props: React.Props<{}>){
   console.log("USER LOGIN UI")
 
   const [user, setUser] = React.useState({});
@@ -43,8 +25,9 @@ function UserLogin(props: Props<{}>){
     })
   }, []);
   React.useEffect(() => {
-    getStrategies.run().then((strategies)=>{
-      console.log("strategies:", strategies)
+    getStrategies.run().then((strategies: Array<string>)=>{
+      console.log("strategies:", strategies);
+      setStrategies(strategies)
     })
   }, []);
   return (
@@ -59,6 +42,5 @@ function UserLogin(props: Props<{}>){
 
 export {
   UserLogin,
-  LoginList
 
 };

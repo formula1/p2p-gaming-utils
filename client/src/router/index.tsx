@@ -11,6 +11,11 @@ import {
 } from "../User/types";
 
 import {
+  UserLogin,
+  LoginList
+} from "../User/ui";
+
+import {
   fetchServer
 } from "../API/api"
 
@@ -60,28 +65,43 @@ class MainRouter extends Component {
     }
 
     return (
-      <UserContext.Provider value={user}>
-        <Router history={history}>
-          <App user={user}>
-            <Switch>
-              <Route exact path="/">
-                <MultipleGamePadsTestUI />
-              </Route>
-              <Route exact path="/gamepad">
-                <MultipleGamePadsTestUI />
-              </Route>
-              <Route exact path="/lobby">
-                <GameLobbyList />
-              </Route>
-              <Route exact path="/lobby/create">
-                <CreateLobbyFormHistoryComponent />
-              </Route>
+      <UserLogin>
+        <UserContext.Consumer>
+        {
+          (props: { user: any, strategies: any })=>{
+            const {user, strategies} = props
+            console.log(props)
+            return !user._id ? (
+              <div>
+                <h1>Login</h1>
+                <LoginList strategies={strategies} />
+              </div>
+            ) : (
+              <Router history={history}>
+                <App user={user}>
+                  <Switch>
+                    <Route exact path="/">
+                      <GameLobbyList />
+                    </Route>
+                    <Route exact path="/game-pad">
+                      <MultipleGamePadsTestUI />
+                    </Route>
+                    <Route exact path="/lobby">
+                      <GameLobbyList />
+                    </Route>
+                    <Route exact path="/lobby/create">
+                      <CreateLobbyFormHistoryComponent />
+                    </Route>
 
-              <Route path="/lobby/:id" component={GameLobby} />
-            </Switch>
-          </App>
-        </Router>
-      </UserContext.Provider>
+                    <Route path="/lobby/:id" component={GameLobby} />
+                  </Switch>
+                </App>
+              </Router>
+            )
+          }
+        }
+        </UserContext.Consumer>
+      </UserLogin>
     );
   }
 }
