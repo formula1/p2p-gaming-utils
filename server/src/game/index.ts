@@ -91,13 +91,15 @@ function setupGame({ ioServer }: GameSetupArgs){
     var user = (req.user as IUser);
 
     return Promise.resolve().then(()=>{
+      console.log("req body:", req.body)
+
       var body = req.body;
       var name = body.name;
       var minUsers = body.minUsers ? parseInt(body.minUsers) : 2
       var maxUsers = body.maxUsers ? parseInt(body.maxUsers) : 2
       var typeOfGame = body.typeOfGame;
       if(name.length < 7){
-        throw new Error("Name of lobby must be at least 15 characters");
+        throw new Error("Name of lobby must be at least 7 characters");
       }
       if(name.length > 255){
         throw new Error("Name of lobby can be at max 255 characters");
