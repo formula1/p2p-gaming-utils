@@ -1,16 +1,16 @@
 import { Router } from "express";
-import { createStrategy } from "./create-strategy";
+import { createStrategy } from "../create-strategy";
 import { Passport } from "passport";
 import {
   UserModel, IUser
-} from "../models/User";
+} from "../../models/User";
 import {
   UserLoginModel
-} from "../models/UserLogin"
+} from "../../models/UserLogin"
 
-import session from 'express-session';
-import MongoStoreCreate from 'connect-mongo';
-import CookieParser from "cookie-parser";
+import * as session from 'express-session';
+import * as MongoStoreCreate from 'connect-mongo';
+import * as CookieParser from "cookie-parser";
 import { Connection } from "mongoose"
 import * as fs from "fs";
 import * as path from "path"
@@ -62,6 +62,12 @@ function setupPassport(arg: CreateRouterArg){
     req.logout();
     res.redirect('/');
   });
+
+  router.post('/auth/register', (req, res)=>{
+    if(req.user){
+
+    }
+  })
 
   router.get('/auth/self', (req, res, next)=>{
     if(!req.user){

@@ -1,6 +1,14 @@
 import * as React from "react";
 
-const UserContext = React.createContext(void 0);
+import {
+  UserSubmit
+} from "./types";
+
+const UserContext = React.createContext({
+  user: void 0,
+  strategies: [],
+  updateUser: ((body: UserSubmit)=>{})
+});
 UserContext.displayName = 'SelfUser';
 export {
   UserContext

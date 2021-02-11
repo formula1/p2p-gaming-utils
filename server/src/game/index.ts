@@ -3,9 +3,7 @@ import { Server as HttpServer } from "http";
 import * as bodyParser from 'body-parser';
 import multer from "multer";
 
-import * as socketIO from "socket.io";
-
-const SocketIOServer = socketIO.Server;
+import socketIO, { Server as SocketIOServer } from "socket.io";
 type Socket = socketIO.Socket;
 
 import {
@@ -19,10 +17,11 @@ import {
 } from "../models/GameLobby";
 
 type GameSetupArgs = {
-  server: HttpServer
+  server: HttpServer,
+  ioServer: SocketIOServer
 };
 
-function setupGame(args: GameSetupArgs){
+function setupGame({ ioServer }: GameSetupArgs){
 
   const upload = multer();
 
@@ -36,8 +35,6 @@ function setupGame(args: GameSetupArgs){
     })
   }
 
-  var server = args.server;
-  var ioServer = new SocketIOServer(server);
   const io = ioServer.of("/gamelobby");
 
   io.on('connection', (client: Socket) => {
@@ -53,7 +50,7 @@ function setupGame(args: GameSetupArgs){
 
   var router = Router();
 
-  router.get("/gamelobby/available", (req, res)=>{
+  router.get("/available", (req, res)=>{
     GameLobbyModel.getAvailableGames().then((lobbies)=>{
       res.status(200).json(lobbies);
     }, (error)=>{
@@ -64,7 +61,7 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
-  router.get("/gamelobby/own", (req, res)=>{
+  router.get("/own", (req, res)=>{
     if(!req.user){
       return res.status(400).json({
         error: true,
@@ -82,8 +79,8 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
-  router.post('/gamelobby/create', upload.none(), (req, res)=>{
-    console.log("POST", '/gamelobby/create')
+  router.post('/create', upload.none(), (req, res)=>{
+    console.log("POST", '/create')
     if(!req.user){
       console.log("No user");
       return res.status(401).json({
@@ -155,7 +152,7 @@ function setupGame(args: GameSetupArgs){
       })
     })
   })
-  router.get("/gamelobby/:id", (req, res)=>{
+  router.get("/:id", (req, res)=>{
     GameLobbyModel.findById(req.params.id)
     .then((resultDoc)=>{
       if(!resultDoc){
@@ -173,7 +170,7 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
-  router.get("/gamelobby/:id/join", (req, res)=>{
+  router.get("/:id/join", (req, res)=>{
     if(!req.user){
       return res.status(400).json({
         error: true,
@@ -200,7 +197,7 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
-  router.get("/gamelobby/:id/cancel", (req, res)=>{
+  router.get("/:id/cancel", (req, res)=>{
     if(!req.user){
       return res.status(400).json({
         error: true,
@@ -230,7 +227,7 @@ function setupGame(args: GameSetupArgs){
     })
   })
 
-  router.get("/gamelobby/:id/start", (req, res)=>{
+  router.get("/:id/start", (req, res)=>{
     if(!req.user){
       return res.status(400).json({
         error: true,

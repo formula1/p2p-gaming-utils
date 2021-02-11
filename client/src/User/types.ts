@@ -1,4 +1,11 @@
 
+type UserSubmit = {
+  username: string,
+  email: string,
+  password: string,
+  register: boolean
+}
+
 type User = {
   _id: string;
   name: string;
@@ -13,5 +20,6 @@ type LoginStrategy = {
 
 export {
   User,
-  LoginStrategy
+  LoginStrategy,
+  UserSubmit
 }

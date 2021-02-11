@@ -1,7 +1,7 @@
 
 import {
-  fetchServer
-} from "../API/api";
+  authHandler
+} from "../User/api";
 
 import {
   TypeOfGame,
@@ -9,23 +9,23 @@ import {
 } from "./types";
 
 function getAvailableGameLobbies(): Promise<Array<GameLobbyType>>{
-  return fetchServer("/gamelobby/available")
+  return authHandler.authorizedFetch("/gamelobby/available")
 }
 
 function getOwnGameLobbies(): Promise<Array<GameLobbyType>>{
-  return fetchServer("/gamelobby/own")
+  return authHandler.authorizedFetch("/gamelobby/own")
 }
 
 function getGameLobby(id: string): Promise<Array<GameLobbyType>>{
-  return fetchServer("/gamelobby/" + id)
+  return authHandler.authorizedFetch("/gamelobby/" + id)
 }
 
 function joinGameLobby(id: string): Promise<Array<GameLobbyType>>{
-  return fetchServer("/gamelobby/" + id + "/join")
+  return authHandler.authorizedFetch("/gamelobby/" + id + "/join")
 }
 
 function leaveGameLobby(id: string): Promise<Array<GameLobbyType>>{
-  return fetchServer("/gamelobby/" + id + "/leave")
+  return authHandler.authorizedFetch("/gamelobby/" + id + "/leave")
 }
 
 type CreateGameLobbyArg = {
@@ -41,24 +41,27 @@ function createGameLobby({
   maxUsers,
   typeOfGame,
 }: CreateGameLobbyArg){
-  return fetchServer("/gamelobby/create", {
+  console.log("creating lobby");
+
+  var data = new FormData()
+  data.append("name", name)
+  data.append("minUsers", minUsers.toString())
+  data.append("maxUsers", maxUsers.toString())
+  data.append("typeOfGame", typeOfGame)
+
+  return authHandler.authorizedFetch("/gamelobby/create", {
     method: "POST",
-    body: {
-      name,
-      minUsers,
-      maxUsers,
-      typeOfGame,
-    }
+    body: data
   })
 
 }
 
 function cancelGameLobby(id: string): Promise<Array<GameLobbyType>>{
-  return fetchServer("/gamelobby/" + id + "/cancel")
+  return authHandler.authorizedFetch("/gamelobby/" + id + "/cancel")
 }
 
 function startGameLobby(id: string): Promise<Array<GameLobbyType>>{
-  return fetchServer("/gamelobby/" + id + "/start")
+  return authHandler.authorizedFetch("/gamelobby/" + id + "/start")
 }
 
 export {

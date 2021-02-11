@@ -5,40 +5,59 @@ import {
 } from "./constants";
 
 function handleFetchResponse(res: Response){
-
   console.log("handle response");
-  if(res.ok){
-    return res.json()
-  }else{
-    return res.text().then((err)=>{
-      throw new Error(err)
-    })
-  }
-}
-
-function fetchServer(path: string, config?: any){
-  console.log(path, config);
-
-  return fetch(
-    `${PUBLIC_SERVER_ORIGIN}${path||"/"}`,
-    config
-  ).then(handleFetchResponse, (e)=>{
-    console.error(e);
+  return res.text().then((json)=>{
+    console.log("return:", json)
+    if(res.ok){
+      return JSON.parse(json)
+    }else{
+      throw json
+    }
+  }, (err: any)=>{
+    console.error(err);
+    throw new Error(err)
   })
 }
 
-function fetchLive(path: string, config?: any){
+function fetchServer(path: string, config?: RequestInit){
+  console.log(path, config);
+
+  path = `${PUBLIC_SERVER_ORIGIN}${path||"/"}`;
+
   return fetch(
-    `${PUBLIC_LIVE_ORIGIN}${path||"/"}`,
+    path,
     config
   ).then(handleFetchResponse)
+  .catch((e)=>{
+    console.error(path, ":", e);
+    throw e;
+  })
 }
 
-function fetchEth(path: string, config?: any){
+function fetchLive(path: string, config?: RequestInit){
+  path = `${PUBLIC_LIVE_ORIGIN}${path||"/"}`;
   return fetch(
-    `${PUBLIC_ETH_NODE_ORIGIN}${path||"/"}`,
+    path,
     config
   ).then(handleFetchResponse)
+  .catch((e)=>{
+    console.error(path, ":", e);
+    throw e;
+  })
+
+}
+
+function fetchEth(path: string, config?: RequestInit){
+  path = `${PUBLIC_ETH_NODE_ORIGIN}${path||"/"}`;
+  return fetch(
+    path,
+    config
+  ).then(handleFetchResponse)
+  .catch((e)=>{
+    console.error(path, ":", e);
+    throw e;
+  })
+
 }
 
 

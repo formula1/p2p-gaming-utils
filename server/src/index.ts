@@ -2,18 +2,24 @@ import * as fs from "fs";
 import * as path from "path"
 import mongoose from 'mongoose';
 
+import * as socketIO from "socket.io";
+const SocketIOServer = socketIO.Server;
+
 import ExpressApp, {
   Router,
   Response,
-  Request
+  Request,
+  NextFunction
 } from "express";
 
 import cors from "cors";
 
 import {
   setupPassport
-} from "./passport-strategy";
-
+} from "./passport-strategy/setup/no-session";
+import {
+  PassportSetupReturn
+} from "./passport-strategy/types";
 import { setupGame } from "./game";
 
 import {
@@ -79,20 +85,28 @@ new Promise((res)=>{
 }).then(()=>{
   console.log("connected to mongoose")
   const mainRouter = ExpressApp();
+  var passportSetup: void | PassportSetupReturn;
 
   mainRouter.use(cors());
 
+  mainRouter.use((req, res, next)=>{
+    console.log(req.method, ":", req.path)
+    next()
+  });
   return new Promise((res)=>{
 
-    const passportSetup = setupPassport({
+    passportSetup = setupPassport({
       strategyFolder: path.join(__dirname, "/passport-strategy/hidden"),
       locationOrigin: locationOrigin,
       sessionSecret: SESSION_SECRET || "SESSION_SECRET",
       mongooseConnection: mongoose.connection
     })
 
-    mainRouter.use(passportSetup.middleware);
-    mainRouter.use(passportSetup.router);
+
+    mainRouter.use("/auth/", (req, res, next)=>{
+      console.log("/auth", req.path);
+      next()
+    }, passportSetup.router);
     res("ok");
   }).then(()=>{
 
@@ -101,9 +115,6 @@ new Promise((res)=>{
       res.set('Content-Type', 'text/html');
       res.status(200).send(indexHTML());
     });
-
-    mainRouter.use(ExpressApp.static(`${__dirname}/public`))
-
 
   }).then(()=>{
 
@@ -123,11 +134,27 @@ new Promise((res)=>{
 
       server.on("request", mainRouter);
 
+      var ioServer = new SocketIOServer(server);
+
+
       var { router: gameRouter } = setupGame({
-        server: server
+        server: server,
+        ioServer: ioServer
       });
 
-      mainRouter.use(gameRouter)
+      if(!passportSetup){
+        throw new Error("passport didn't setup")
+      }
+
+      mainRouter.use(
+        "/gamelobby",
+        passportSetup.middleware,
+        (req, res, next)=>{
+          console.log("gamelobby:", req.user);
+          next()
+        },
+        gameRouter
+      );
 
       return new Promise((res, rej)=>{
         server.listen(INTERNAL_START_PORT, (err: any)=>{

@@ -12,7 +12,8 @@ import {
 
 import {
   UserLogin,
-  LoginList
+  LoginList,
+  RegisterLogin
 } from "../User/ui";
 
 import {
@@ -58,23 +59,18 @@ class MainRouter extends Component {
   }
 
   render(){
-    const user = this.state.user;
-
-    if(!user){
-      return null
-    }
 
     return (
       <UserLogin>
         <UserContext.Consumer>
         {
           (props: { user: any, strategies: any })=>{
-            const {user, strategies} = props
+            const {user} = props
             console.log(props)
-            return !user._id ? (
+            return !user ? (
               <div>
                 <h1>Login</h1>
-                <LoginList strategies={strategies} />
+                <RegisterLogin />
               </div>
             ) : (
               <Router history={history}>

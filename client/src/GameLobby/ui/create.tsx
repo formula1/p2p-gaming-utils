@@ -3,10 +3,9 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import history from "../../router/history";
 
-
 import {
-  fetchServer
-} from "../../API/api"
+  createGameLobby
+} from "../api";
 
 type ChangeEvent = React.ChangeEvent;
 
@@ -19,7 +18,8 @@ import {
 type onChangePropsFunction = (v: EditableGameLobbyType)=>any
 
 
-type CreateFormProps = EditableGameLobbyType & {
+type CreateFormProps = {
+  value: EditableGameLobbyType,
   onChange: void | onChangePropsFunction,
   onSubmit: void | ((e: FormEvent<HTMLFormElement>)=>any)
 }
@@ -35,10 +35,10 @@ function   CreateLobbyForm(props: CreateFormProps){
           <span>Name: </span>
           <input
             type="text"
-            value={props.name}
+            value={props.value.name}
             onChange={(e)=>{
               props.onChange && props.onChange({
-                ...props,
+                ...props.value,
                 name: e.target.value
               })
             }}
@@ -49,10 +49,10 @@ function   CreateLobbyForm(props: CreateFormProps){
           <input
             type="number"
             min="2"
-            value={props.minUsers}
+            value={props.value.minUsers}
             onChange={(e)=>{
               props.onChange && props.onChange({
-                ...props,
+                ...props.value,
                 minUsers: parseInt(e.target.value)
               })
             }}
@@ -63,10 +63,10 @@ function   CreateLobbyForm(props: CreateFormProps){
           <input
             type="number"
             min="2"
-            value={props.maxUsers}
+            value={props.value.maxUsers}
             onChange={(e)=>{
               props.onChange && props.onChange({
-                ...props,
+                ...props.value,
                 maxUsers: parseInt(e.target.value)
               })
             }}
@@ -75,10 +75,10 @@ function   CreateLobbyForm(props: CreateFormProps){
         <li>
           <span>Type of Game:</span>
           <select
-            value={props.typeOfGame}
+            value={props.value.typeOfGame}
             onChange={(e)=>{
               props.onChange && props.onChange({
-                ...props,
+                ...props.value,
                 typeOfGame: (e.target.value as unknown as TypeOfGame)
               })
             }}
@@ -107,7 +107,7 @@ class CreateLobbyFormComponent extends Component<RouteComponentProps> {
 
     console.log(this.state);
     return <CreateLobbyForm
-      {...this.state}
+      value={this.state}
       onChange={(newValue)=>{
         this.setState(newValue)
       }}
@@ -117,7 +117,7 @@ class CreateLobbyFormComponent extends Component<RouteComponentProps> {
         const {name, minUsers, maxUsers, typeOfGame} = this.state;
         return Promise.resolve().then(()=>{
           if(name.length < 7){
-            throw new Error("Name of lobby must be at least 15 characters");
+            throw new Error("Name of lobby must be at least 7 characters");
           }
           if(name.length > 255){
             throw new Error("Name of lobby can be at max 255 characters");
@@ -142,15 +142,11 @@ class CreateLobbyFormComponent extends Component<RouteComponentProps> {
             )
           }
 
-          let formData = new FormData();
-          formData.append("name", name);
-          formData.append("minUsers", minUsers.toString());
-          formData.append("maxUsers", maxUsers.toString());
-          formData.append("typeOfGame", typeOfGame.toString());
-
-          return fetchServer("/gamelobby/create", {
-            method: "POST",
-            body: formData
+          return createGameLobby({
+            name,
+            minUsers,
+            maxUsers,
+            typeOfGame
           }).then((res)=>{
             console.log("post fetch", res);
             history.push("/lobby/" + res._id)

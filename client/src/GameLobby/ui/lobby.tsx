@@ -95,7 +95,12 @@ function GameLobby (props: { match: HistoryMatch, self: User }){
 
   useEffect(() => {
     getGameLobby(id).then((lobby)=>{
+      console.log("lobby:", lobby)
       setLobby(lobby)
+    }, (err)=>{
+      if(err.message === "Missing Lobby"){
+        history.replace("/lobby")
+      }
     })
   }, [props.match.url]);
 
@@ -105,7 +110,7 @@ function GameLobby (props: { match: HistoryMatch, self: User }){
 
   return (
     <UserContext.Consumer>
-      {(user)=>{
+      {({user})=>{
         return !user ? null : (
           <div>
             <RenderGame self={user} game={lobby} />

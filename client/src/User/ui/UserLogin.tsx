@@ -1,46 +1,57 @@
-import * as React from "react";
+import React, {Component, Props, useState, useEffect} from "react";
 
 import {
-  getUser,
-  getStrategies
-} from "../api";
+  User, LoginStrategy, UserSubmit
+} from "../types";
+
+import {
+  Authorization,
+  authHandler
+} from "../api"
 
 import {
   UserContext
 } from "../context";
 
-function UserLogin(props: React.Props<{}>){
-  console.log("USER LOGIN UI")
-
-  const [user, setUser] = React.useState({});
-  const [strategies, setStrategies] = React.useState([]);
-
-  React.useEffect(() => {
-    getUser.run().then((userValue: any)=>{
-      console.log("user:", userValue)
-      setUser(userValue)
-    }, (error)=>{
-      console.error(error)
-      setUser(null);
+class UserLogin extends Component {
+  state: {
+    user: void | User,
+    strategies: Array<LoginStrategy>
+  } ={
+    strategies: [],
+    user: void 0
+  }
+  auth: Authorization = authHandler
+  removeListener: void | (()=>any)
+  componentDidMount(){
+    this.removeListener = this.auth.addListener((token)=>{
+      this.auth.authorizedFetch("/auth/self").then((user)=>{
+        this.setState({
+          user: user
+        })
+      })
     })
-  }, []);
-  React.useEffect(() => {
-    getStrategies.run().then((strategies: Array<string>)=>{
-      console.log("strategies:", strategies);
-      setStrategies(strategies)
-    })
-  }, []);
-  return (
-    <UserContext.Provider value={{
-      strategies: strategies,
-      user: user
-    }}>{
-      props.children
-    }</UserContext.Provider>
-  );
+  }
+  componentWillUnmount(){
+    this.removeListener && this.removeListener()
+  }
+  render(){
+    return (
+      <UserContext.Provider
+        value={{
+          strategies: this.state.strategies,
+          user: this.state.user,
+          updateUser: (body: UserSubmit)=>{
+            this.auth.handleUserSubmit(body)
+          }
+        }}
+      >{
+        this.props.children
+      }</UserContext.Provider>
+    )
+  }
 }
 
 export {
   UserLogin,
-
 };
