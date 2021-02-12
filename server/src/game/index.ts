@@ -190,6 +190,36 @@ function setupGame({ ioServer }: GameSetupArgs){
       return resultDoc.joinLobby(user._id).then(()=>{
         res.status(200).json(resultDoc);
         broadcastSockets("update")
+        return void 0;
+      })
+    }).catch((error)=>{
+      res.status(400).json({
+        error: true,
+        message: error.message || error.toString()
+      })
+    })
+  })
+
+  router.get("/:id/leave", (req, res)=>{
+    if(!req.user){
+      return res.status(400).json({
+        error: true,
+        message: "Not logged in"
+      })
+    }
+    var user = (req.user as IUser);
+    GameLobbyModel.findById(req.params.id)
+    .then((resultDoc: IGameLobby)=>{
+      if(!resultDoc){
+        return res.status(404).json({
+          error: true,
+          message: "Missing Lobby"
+        })
+      }
+      return resultDoc.leaveLobby(user._id.toString()).then(()=>{
+        res.status(200).json(resultDoc);
+        broadcastSockets("update")
+        return void 0;
       })
     }).catch((error)=>{
       res.status(400).json({
@@ -256,6 +286,13 @@ function setupGame({ ioServer }: GameSetupArgs){
         error: true,
         message: error.message || error.toString()
       })
+    })
+  })
+
+  router.use((req, res, next)=>{
+    res.status(404).send({
+      error: true,
+      message: "Non Existant Link"
     })
   })
 

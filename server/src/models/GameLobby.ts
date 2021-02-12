@@ -22,7 +22,8 @@ type ObjectId = Types.ObjectId;
 
 type MethodFunctions = {
   startLobby: ()=>any,
-  joinLobby: (userId: string)=>any,
+  joinLobby: (userId: string)=>Promise<any>,
+  leaveLobby: (userId: string)=>Promise<any>
   cancelLobby: ()=>any
 }
 
@@ -82,17 +83,38 @@ GameLobbySchema.methods.joinLobby = function(user: string) {
 
   return joinLobbyQueue.run(()=>{
     if(_this.started){
-      return Promise.reject(new Error("The game has already started"));
+      throw new Error("The game has already started");
     }
     if(_this.maxUsers === _this.users.length){
-      return Promise.reject(new Error("already at max users"));
+      throw new Error("already at max users");
     }
     if(_this.users.some((userId)=>{
       return userId.toString() == user;
     })){
-      return Promise.resolve("already joined")
+      throw new Error("already joined");
     }
     _this.users.push(ObjectId(user));
+    return _this.save();
+  })
+};
+
+GameLobbySchema.methods.leaveLobby = function(user: string) {
+  var _this = (this as IGameLobby);
+
+  return joinLobbyQueue.run(()=>{
+    if(_this.started){
+      throw new Error("The game has already started");
+    }
+    if(!_this.users.some((userId)=>{
+      return userId.toString() === user
+    })){
+      throw new Error("Not Joined")
+    }
+
+    _this.users = _this.users.filter((userId)=>{
+      return user !== userId.toString()
+    })
+
     return _this.save();
   })
 };
