@@ -1,4 +1,6 @@
 
+import history from "../router/history";
+
 import {
   authHandler
 } from "../User/api";
@@ -16,16 +18,29 @@ function getOwnGameLobbies(): Promise<Array<GameLobbyType>>{
   return authHandler.authorizedFetch("/gamelobby/own")
 }
 
-function getGameLobby(id: string): Promise<Array<GameLobbyType>>{
+function getGameLobby(id: string): Promise<GameLobbyType>{
   return authHandler.authorizedFetch("/gamelobby/" + id)
 }
 
-function joinGameLobby(id: string): Promise<Array<GameLobbyType>>{
-  return authHandler.authorizedFetch("/gamelobby/" + id + "/join")
+function joinGameLobby(id: string): Promise<GameLobbyType>{
+  return authHandler.authorizedFetch("/gamelobby/" + id + "/join").then((lobby)=>{
+    history.push("/lobby/" + id)
+    return lobby
+  })
 }
 
-function leaveGameLobby(id: string): Promise<Array<GameLobbyType>>{
-  return authHandler.authorizedFetch("/gamelobby/" + id + "/leave")
+function leaveGameLobby(id: string): Promise<GameLobbyType>{
+  return authHandler.authorizedFetch("/gamelobby/" + id + "/leave").then((lobby)=>{
+    history.push("/lobby/")
+    return lobby
+  }).catch((err)=>{
+    if(err.message === "Missing Lobby"){
+      history.push("/lobby/")
+    }
+    if(err.message === "Not Joined"){
+      history.push("/lobby/")
+    }
+  })
 }
 
 type CreateGameLobbyArg = {
@@ -56,8 +71,11 @@ function createGameLobby({
 
 }
 
-function cancelGameLobby(id: string): Promise<Array<GameLobbyType>>{
-  return authHandler.authorizedFetch("/gamelobby/" + id + "/cancel")
+function cancelGameLobby(id: string): Promise<GameLobbyType>{
+  return authHandler.authorizedFetch("/gamelobby/" + id + "/cancel").then((lobby)=>{
+    history.push("/lobby/")
+    return lobby
+  })
 }
 
 function startGameLobby(id: string): Promise<Array<GameLobbyType>>{

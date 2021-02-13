@@ -36,6 +36,7 @@
     "@types/react-dom": "^17.0.0",
     "@types/react-router": "^5.1.11",
     "@types/react-router-dom": "^5.1.7",
+    "@types/socket.io": "^2.1.13",
     "brfs": "^2.0.2",
     "browserify": "^16.5.0",
     "browserify-css": "^0.15.0",

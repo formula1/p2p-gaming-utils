@@ -175,7 +175,10 @@ new Promise((res)=>{
 
     mainRouter.use(function (err: any, req: Request, res: Response, next: (err: any)=>any) {
       console.error(err.stack)
-      res.status(err.status ? err.status : 500).send('Something broke! <br/> ' + err.message)
+      res.status(err.status ? err.status : 500).send({
+        error: true,
+        message: 'Something broke!' + err.message
+      })
     })
   })
 

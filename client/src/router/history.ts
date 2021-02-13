@@ -1,4 +1,5 @@
 import { createBrowserHistory } from "history";
+
 export default createBrowserHistory();
 
 type HistoryMatch = {
@@ -9,7 +10,6 @@ type HistoryMatch = {
 ​​  path: string,
   url: string
 }
-
 
 export {
   HistoryMatch

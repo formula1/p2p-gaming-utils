@@ -19,6 +19,10 @@ class Authorization {
   listeners: Array<AuthListener> = []
   authToken: void | string
 
+  getAuthToken(){
+    return this.authToken
+  }
+
   addListener(listener: AuthListener){
     this.listeners.push(listener);
     return ()=>{

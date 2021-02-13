@@ -91,9 +91,10 @@ GameLobbySchema.methods.joinLobby = function(user: string) {
     if(_this.users.some((userId)=>{
       return userId.toString() == user;
     })){
-      throw new Error("already joined");
+      console.log("already joined")
+    }else{
+      _this.users.push(ObjectId(user));
     }
-    _this.users.push(ObjectId(user));
     return _this.save();
   })
 };

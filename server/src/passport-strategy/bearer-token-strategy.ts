@@ -10,6 +10,10 @@ import { Strategy as BearerStrategy } from "passport-http-bearer";
 import {
   IUser
 } from "../models/User"
+import {
+  UserSessionModel
+} from "../models/UserSession"
+
 
 import { Passport } from "passport";
 
@@ -25,8 +29,7 @@ function setupStrategy(){
       cb: (error: any, user: void | Document)=>any
     ) {
       console.log("token strategy")
-      UserLoginBasicModel.findUserByToken(token).then((user)=>{
-        console.log("user:", user);
+      UserSessionModel.loginUserByToken(token).then((user)=>{
         if(user){
           (req as any).token = token
           return cb(null, user)

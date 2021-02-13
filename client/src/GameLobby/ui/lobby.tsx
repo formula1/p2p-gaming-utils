@@ -25,6 +25,10 @@ import {
 } from "../../User/context";
 
 import {
+  SocketContext
+} from "../../router/context"
+
+import {
   getAvailableGameLobbies,
   getOwnGameLobbies,
 
@@ -37,8 +41,20 @@ import {
   startGameLobby
 } from "../api";
 
+function RenderGame({ game, creator }: { game: GameLobbyType, creator: User }){
+  return (
+    <ul>
+      <li><span>Name: </span><span>{game.name}</span></li>
+      <li><span>Creator: </span><span>{creator.name}</span></li>
+      <li><span>Type Of Game: </span><span>{game.typeOfGame}</span></li>
+      <li><span>Min Users: </span><span>{game.minUsers}</span></li>
+      <li><span>Max Users: </span><span>{game.maxUsers}</span></li>
+    </ul>
+  )
+}
 
-function RenderGame(props: { game: GameLobbyType, self: User }){
+
+function RenderGameOptions(props: { game: GameLobbyType, self: User }){
   const {
     game, self
   } = props;
@@ -48,8 +64,6 @@ function RenderGame(props: { game: GameLobbyType, self: User }){
       onClick={(e)=>{
         e.preventDefault();
         leaveGameLobby(game._id);
-        history.push("/lobby")
-
       }}
     >Leave</button>
   }
@@ -75,52 +89,106 @@ function RenderGame(props: { game: GameLobbyType, self: User }){
 }
 
 function RenderUsers(props: { users: Array<User> }){
+
+  console.log("RenderUsers:", props)
   return (
-    <ul>
-    {
-      props.users.map((user)=>{
-        return (<li>{user.name}</li>);
-      })
-    }
-    </ul>
+    <div>
+      <h3>Joined Users</h3>
+      <ul>
+      {
+        props.users.map((user)=>{
+          return (<li key={user._id}>{user.name}</li>);
+        })
+      }
+      </ul>
+    </div>
   );
 }
 
-function GameLobby (props: { match: HistoryMatch, self: User }){
-  console.log(props);
+// function RenderUser(props: { user: string }){
+//   useEffect(() => {
+//     getGameLobby(id).then((lobby)=>{
+//       console.log("lobby:", lobby)
+//       setLobby(lobby)
+//     }, (err)=>{
+//       if(err.message === "Missing Lobby"){
+//         history.replace("/lobby")
+//       }
+//     })
+//   }, [props.user]);
+// }
 
-  const  id = props.match.params.id
+class GameLobbyUI extends Component<{ socket: Socket, match: HistoryMatch, self: User }> {
+  state: {
+    lobby : void | {
+      lobby : any,
+      creatorDoc: any,
+      userDocs: any
+    }
+  } = { lobby: void 0 }
 
-  const [lobby, setLobby] = useState(void 0);
-
-  useEffect(() => {
-    getGameLobby(id).then((lobby)=>{
-      console.log("lobby:", lobby)
-      setLobby(lobby)
-    }, (err)=>{
-      if(err.message === "Missing Lobby"){
-        history.replace("/lobby")
-      }
-    })
-  }, [props.match.url]);
-
-  if(!lobby) {
-    return null;
+  socketListener = ()=>{
+    return this.refreshGameLobby()
   }
 
+  componentDidMount(){
+    this.props.socket.on("update", this.socketListener)
+  }
+
+  componentWillUnmount(){
+    this.props.socket.off("update", this.socketListener)
+  }
+
+  refreshGameLobby(){
+    const id = this.props.match.params.id
+    getGameLobby(id).then((lobby)=>{
+      console.log("lobby:", lobby)
+      this.setState({lobby})
+    });
+  }
+
+  render(){
+    const { lobby } = this.state
+
+    if(!lobby) {
+      return null;
+    }
+
+    return (
+      <UserContext.Consumer>
+        {({user})=>{
+          return !user ? null : (
+            <div>
+              <RenderGameOptions self={user} game={lobby.lobby} />
+              <RenderGame
+                game={lobby.lobby}
+                creator={lobby.creatorDoc}
+              />
+              <RenderUsers users={lobby.userDocs} />
+            </div>
+          )
+        }}
+      </UserContext.Consumer>
+    );
+  }
+}
+
+function GameLobby(props: {match: HistoryMatch, self: User }){
   return (
-    <UserContext.Consumer>
-      {({user})=>{
-        return !user ? null : (
-          <div>
-            <RenderGame self={user} game={lobby} />
-            <RenderUsers users={lobby.users} />
-          </div>
+    <SocketContext.Consumer>
+      {({websocket}: { websocket: Socket })=>{
+        return (
+          <GameLobbyUI
+            socket={websocket}
+            match={props.match}
+            self={props.self}
+          />
         )
       }}
-    </UserContext.Consumer>
-  );
+    </SocketContext.Consumer>
+  )
 }
+
 
 export {
   GameLobby
