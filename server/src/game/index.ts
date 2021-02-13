@@ -1,6 +1,6 @@
 import {
   setupGameLobby
-} from "./lobby"
+} from "./lobby/controller"
 
 export {
   setupGameLobby

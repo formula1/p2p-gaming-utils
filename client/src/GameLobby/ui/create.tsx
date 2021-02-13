@@ -4,7 +4,8 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import history from "../../router/history";
 
 import {
-  createGameLobby
+  createGameLobby,
+  joinGameLobby
 } from "../api";
 
 type ChangeEvent = React.ChangeEvent;
@@ -149,7 +150,7 @@ class CreateLobbyFormComponent extends Component<RouteComponentProps> {
             typeOfGame
           }).then((res)=>{
             console.log("post fetch", res);
-            history.push("/lobby/" + res._id)
+            return joinGameLobby(res._id)
           })
         }).catch((err)=>{
           console.error("Error:",err);

@@ -30,16 +30,11 @@ function setupPassport(arg: CreateRouterArg): PassportSetupReturn{
   const passport = new Passport();
   const router = Router();
   const middleware = function(req: Request, res: Response, next: NextFunction){
-    console.log("passport middleware:", req.headers.authorization);
-    var m = passport.authenticate('bearer', { session: false })
-
-    m(req, res, (err: any)=>{
-      console.log("passport middleware:", 2, err);
+    passport.authenticate('bearer', { session: false })(req, res, (err: any)=>{
       if(err){
-        console.error(err);
+        console.error("bearer authenticate:", err);
         return next(err)
       }
-      console.log("passport middleware:", 3);
       const user = req.user as void | IUser;
       console.log(user ? "Has User " + user._id : "No User");
       next()
@@ -105,7 +100,7 @@ function setupPassport(arg: CreateRouterArg): PassportSetupReturn{
         message: "not logged in"
       })
     }
-    UserLoginBasicModel.logout((req.user as any)._id).then((user)=>{
+    UserSessionModel.logout((req as any).token).then((user)=>{
       return res.status(200).json({
         ok: true
       })

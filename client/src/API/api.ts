@@ -11,7 +11,11 @@ function handleFetchResponse(res: Response){
     if(res.ok){
       return JSON.parse(json)
     }else{
-      throw json
+      if(json === "Unauthorized"){
+        throw json
+      }
+      console.error(json);
+      throw JSON.parse(json)
     }
   }, (err: any)=>{
     console.error(err);

@@ -1,4 +1,14 @@
-import React, { FunctionComponent } from "react"
+import React, { FunctionComponent, Component } from "react"
+
+import { io, Socket } from "socket.io-client";
+
+import {
+  authHandler
+} from "../User/api";
+
+import {
+  SocketContext
+} from "./context"
 
 import {
   Link
@@ -30,19 +40,47 @@ function Menu(){
   );
 }
 
+class App extends Component<{user:UserType}> {
+  state: {
+    websocket: void | Socket
+  } = {
+    websocket: void 0
+  }
 
-const App: FunctionComponent<{ user: UserType }> = ({ user, children }) =>{
-  return (
-    <div>
-      <h1>Hello {user.name}</h1>
-      <Menu />
-      <hr />
-      {children}
-      <hr />
-      <div>
-        This is the footer
-      </div>
-    </div>
-  );
+  componentDidMount(){
+    this.setState({
+      websocket: io("http://localhost:8081/gamelobby", {
+        extraHeaders: {
+          "authorization": authHandler.getAuthToken() as string
+        }
+      })
+    })
+  }
+
+  componentWillUnmount(){
+    this.state.websocket && this.state.websocket.close();
+  }
+
+  render(){
+    if(!this.state.websocket){
+      return null;
+    }
+    return (
+      <SocketContext.Provider value={{ websocket: this.state.websocket}}>
+        <div>
+          <h1>Hello {this.props.user.name}</h1>
+          <Menu />
+          <hr />
+          {this.props.children}
+          <hr />
+          <div>
+            This is the footer
+          </div>
+        </div>
+
+      </SocketContext.Provider>
+    )
+  }
 }
+
 export default App;
