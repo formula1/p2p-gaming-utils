@@ -20,7 +20,7 @@ import {
 import {
   PassportSetupReturn
 } from "./passport-strategy/types";
-import { setupGameLobby } from "./game";
+import { setupGameLobbyRouter } from "./game";
 
 import {
   indexHTML
@@ -137,7 +137,7 @@ new Promise((res)=>{
       var ioServer = new SocketIOServer(server);
 
 
-      var { router: gameRouter } = setupGameLobby({
+      var { router: gameRouter } = setupGameLobbyRouter({
         server: server,
         ioServer: ioServer
       });

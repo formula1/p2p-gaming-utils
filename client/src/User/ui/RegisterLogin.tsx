@@ -62,6 +62,7 @@ function RegisterLoginForm(props: RegisterLoginFormProps){
             <span>Username:</span>
             <input
               type="text"
+              name="username"
               value={props.value.username}
               onChange={(e)=>{
                 props.onChange && props.onChange({
@@ -77,6 +78,7 @@ function RegisterLoginForm(props: RegisterLoginFormProps){
           <span>Email:</span>
           <input
             type="text"
+            name="email"
             value={props.value.email}
             onChange={(e)=>{
               props.onChange && props.onChange({
@@ -90,6 +92,7 @@ function RegisterLoginForm(props: RegisterLoginFormProps){
           <span>password:</span>
           <input
             type="password"
+            name="password"
             value={props.value.password}
             onChange={(e)=>{
               props.onChange && props.onChange({
@@ -103,6 +106,7 @@ function RegisterLoginForm(props: RegisterLoginFormProps){
           <span>Register:</span>
           <input
               type="checkbox"
+              name="register"
               value="register"
               checked={props.value.register}
               onChange={(e)=>{

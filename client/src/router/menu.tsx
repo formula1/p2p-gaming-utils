@@ -28,7 +28,13 @@ function Menu(){
         <Link to="/game-pad">Game Pad Test</Link>
       </li>
       <li>
-        <Link to="/lobby">Game Lobbies</Link>
+        <Link to="/lobby/available">Game Lobbies</Link>
+      </li>
+      <li>
+        <Link to="/lobby/own">Own Game Lobbies</Link>
+      </li>
+      <li>
+        <Link to="/lobby/joined">Joined Game Lobbies</Link>
       </li>
       <li>
         <Link to="/lobby/create">Create Lobby</Link>

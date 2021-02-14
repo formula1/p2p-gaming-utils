@@ -10,10 +10,6 @@ import {
   UserLogin
 } from "./User/ui"
 
-import {
-  GameLobbyList
-} from "./GameLobby";
-
 console.log("before load")
 console.log("API:", API);
 

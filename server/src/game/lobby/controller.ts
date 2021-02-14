@@ -1,7 +1,4 @@
-import { Router } from "express";
 import { Server as HttpServer } from "http";
-import * as bodyParser from 'body-parser';
-import multer from "multer";
 
 import {
   UserModel, IUser
@@ -14,15 +11,15 @@ import {
   TypeOfGame
 } from "../../models/GameLobby";
 
+import {
+  Rooms
+} from "../rooms";
+
+import { Socket, Server as SocketIOServer } from "socket.io";
 
 import {
-  throwStatus
-} from "../../utils/error"
-
-import socketIO, { Socket, Server as SocketIOServer } from "socket.io";
-
-import {
-  SocketHandler
+  SocketHandler,
+  UserSocket
 } from "../socket-handler";
 
 import {
@@ -30,280 +27,171 @@ import {
 } from "./validator"
 
 type GameSetupArgs = {
-  server: HttpServer,
   ioServer: SocketIOServer
 };
 
-function setupGameLobby({ ioServer }: GameSetupArgs){
+type CreateBody = {
+  name: string,
+  minUsers: number,
+  maxUsers: number,
+  typeOfGame: TypeOfGame
+}
+
+function setupController({ ioServer }: GameSetupArgs){
 
   const GAME_LOBBY_ROOM = "/gamelobby"
 
-  const upload = multer();
-  var router = Router();
-
+  const roomHandler = new Rooms();
   var socketHandler = new SocketHandler(ioServer);
 
-  router.get("/available", (req, res)=>{
-    if(!req.user){
-      return throwStatus(res, 401, "Not logged in")
+  socketHandler.listenForClientJoin((user: UserSocket)=>{
+    roomHandler.join(GAME_LOBBY_ROOM, user.user._id)
+  })
+
+  socketHandler.listenForClientLeave((user: UserSocket)=>{
+    var userId = user.user._id.toString();
+    var rooms = roomHandler.getRoomsOfUsers(userId)
+    if(!rooms){
+      return console.log(userId, "has no rooms");
     }
-    var user = (req.user as IUser);
-    GameLobbyModel.getAvailableGames().then((lobbies)=>{
-      socketHandler.getById(user._id).join(GAME_LOBBY_ROOM);
-      res.status(200).json(lobbies);
-    }, (error)=>{
-      return throwStatus(res, 400, error.message || error.toString())
+    Promise.all(rooms.map((room)=>{
+      if(room === GAME_LOBBY_ROOM){
+        return
+      }
+      var lobbyId = room.split("/")[2]
+      return controller.cancel(userId, lobbyId).catch((err)=>{
+        console.error(err);
+        throw err
+      });
+    })).then((results)=>{
+      console.log(`on socket ${user.user._id} disconnect: ${results}`);
     })
   })
 
-  router.get("/own", (req, res)=>{
-    if(!req.user){
-      return throwStatus(res, 401, "Not logged in")
-    }
-    var user = (req.user as IUser);
-    GameLobbyModel.getHostedGames(user._id).then((lobbies)=>{
-      res.status(200).json(lobbies);
-    }, (error)=>{
-      return throwStatus(res, 400, error.message || error.toString())
-    })
-  })
+  const controller = {
 
-  router.post('/create', upload.none(), (req, res)=>{
-    if(!req.user){
-      return res.status(401).json({
-        error: true,
-        message: "Not logged in"
-      })
-    }
-    var user = (req.user as IUser);
+    create(user: IUser, body: CreateBody): Promise<IGameLobby>{
+      return Promise.resolve().then(()=>{
+        if(!user){
+          throw new Error("User not Logged In")
+        }
+        return createValidation(body)
+      }).then(
+        (values: CreateBody)=>{
+          const doc = new GameLobbyModel({
+            ...values,
+            creator: user._id,
+          });
+          return doc.save().then((resultDoc)=>{
 
-    return Promise.resolve().then(()=>{
-      return createValidation(req.body)
-    }).then(
-      (values: {
-        name: string,
-        minUsers: number,
-        maxUsers: number,
-        typeOfGame: TypeOfGame
-      })=>{
-        const doc = new GameLobbyModel({
-          ...values,
-          creator: user._id,
-        });
-        return doc.save().then((resultDoc)=>{
-          res.status(200).json(resultDoc);
-          const roomId = GAME_LOBBY_ROOM + "/"+resultDoc._id
-          socketHandler.getById(user._id).join(roomId);
-          socketHandler.getById(user._id).leave(GAME_LOBBY_ROOM);
-          socketHandler.getIO()
-            .to(GAME_LOBBY_ROOM)
-            .to(roomId)
-            .emit("update")
-        })
-      }
-    ).catch((err)=>{
-      return res.status(400).json({
-        error: true,
-        message: err.message
-      })
-    })
-  })
-  router.get("/:id", (req, res)=>{
-    GameLobbyModel.findById(req.params.id)
-    .then((resultDoc)=>{
-      if(!resultDoc){
-        return res.status(404).json({
-          error: true,
-          message: "Missing Lobby"
-        })
-      }
-      Promise.all([
-        UserModel.findById(resultDoc.creator),
-        Promise.all(resultDoc.users.map((user)=>{
-          return UserModel.findById(user);
-        }))
-      ]).then(([creator, users])=>{
-        console.log("users: ", users)
-        console.log("resultdoc:", resultDoc)
-        res.status(200).json({
-          lobby:resultDoc,
-          userDocs: users,
-          creatorDoc: creator
-        });
-      })
-    }, (error)=>{
-      res.status(400).json({
-        error: true,
-        message: error.message || error.toString()
-      })
-    })
-  })
+            const roomId = GAME_LOBBY_ROOM + "/"+resultDoc._id
+            roomHandler.join(roomId, user._id)
+            roomHandler.leave(GAME_LOBBY_ROOM, user._id)
 
-  router.get("/:id/join", (req, res)=>{
-    if(!req.user){
-      return res.status(400).json({
-        error: true,
-        message: "Not logged in"
-      })
-    }
-    var user = (req.user as IUser);
-    GameLobbyModel.findById(req.params.id).then((resultDoc)=>{
-      if(!resultDoc){
-        return res.status(404).json({
-          error: true,
-          message: "Missing Lobby"
-        })
-      }
-      return resultDoc.joinLobby(user._id).then(()=>{
-        res.status(200).json(resultDoc);
-        const roomId = GAME_LOBBY_ROOM + "/"+req.params.id
-        socketHandler.getById(user._id).leave(GAME_LOBBY_ROOM);
-        socketHandler.getById(user._id).join(roomId);
-        socketHandler.getIO()
-          .to(GAME_LOBBY_ROOM)
-          .to(roomId)
-          .emit("update")
-        return void 0;
-      })
-    }).catch((error)=>{
-      res.status(400).json({
-        error: true,
-        message: error.message || error.toString()
-      })
-    })
-  })
-
-
-  router.get("/:id/leave", (req, res)=>{
-    if(!req.user){
-      return res.status(400).json({
-        error: true,
-        message: "Not logged in"
-      })
-    }
-    var user = (req.user as IUser);
-    GameLobbyModel.findById(req.params.id)
-    .then((resultDoc: IGameLobby)=>{
-      if(!resultDoc){
-        return res.status(404).json({
-          error: true,
-          message: "Missing Lobby"
-        })
-      }
-      return resultDoc.leaveLobby(user._id.toString()).then(()=>{
-        res.status(200).json(resultDoc);
-
-        const roomId = GAME_LOBBY_ROOM + "/"+req.params.id
-
-        socketHandler.getById(user._id).leave(roomId);
-        socketHandler.getById(user._id).join(GAME_LOBBY_ROOM);
-        socketHandler.getIO()
-          .to(roomId)
-          .to(GAME_LOBBY_ROOM)
-          .emit("update")
-        return void 0;
-      })
-    }).catch((error)=>{
-      res.status(400).json({
-        error: true,
-        message: error.message || error.toString()
-      })
-    })
-  })
-
-  router.get("/:id/cancel", (req, res)=>{
-    if(!req.user){
-      return res.status(400).json({
-        error: true,
-        message: "Not logged in"
-      })
-    }
-    var user = (req.user as IUser);
-    GameLobbyModel.findById(req.params.id).then((resultDoc)=>{
-      if(!resultDoc){
-        return res.status(404).json({
-          error: true,
-          message: "Missing Lobby"
-        })
-      }
-      if(resultDoc.creator.toString() !== user._id.toString()){
-        throw new Error("the user is not the creator");
-      }
-      return resultDoc.cancelLobby().then(()=>{
-        const lobbyId = GAME_LOBBY_ROOM + "/" + req.params.id;
-        var io = socketHandler.getIO();
-        io.in(lobbyId).allSockets().then((socketIds: Set<string>)=>{
-          Array.from(socketIds).forEach((id)=>{
-            const socket = io.sockets.get(id);
-            socket.leave(lobbyId)
-            socket.join(GAME_LOBBY_ROOM)
+            socketHandler
+              .broadcastUsers(roomHandler.getUsersInRoom(roomId), "update")
+            socketHandler
+              .broadcastUsers(roomHandler.getUsersInRoom(GAME_LOBBY_ROOM), "update")
+              return resultDoc;
           })
-          socketHandler.getIO()
-            .to(GAME_LOBBY_ROOM)
-            .emit("update")
-        })
-        res.status(200).json(resultDoc);
-      })
-    }).catch((error)=>{
-      res.status(400).json({
-        error: true,
-        message: error.message || error.toString()
-      })
-    })
-  })
+        }
+      )
+    },
 
-  router.get("/:id/start", (req, res)=>{
-    if(!req.user){
-      return res.status(400).json({
-        error: true,
-        message: "Not logged in"
+    join(user: IUser, gameId: string): Promise<IGameLobby>{
+      return GameLobbyModel.findById(gameId).then((resultDoc)=>{
+        if(!resultDoc){
+          throw new Error("Missing Lobby")
+        }
+        return resultDoc.joinLobby(user._id).then((gameLobby)=>{
+          const roomId = GAME_LOBBY_ROOM + "/"+gameId
+
+          roomHandler.leave(GAME_LOBBY_ROOM, user._id)
+          roomHandler.join(roomId, user._id)
+
+          socketHandler
+            .broadcastUsers(roomHandler.getUsersInRoom(roomId), "update")
+          socketHandler
+            .broadcastUsers(roomHandler.getUsersInRoom(GAME_LOBBY_ROOM), "update")
+
+          return gameLobby
+        })
+      })
+    },
+
+    leave(user: IUser, gameId: string): Promise<IGameLobby> {
+      return GameLobbyModel.findById(gameId)
+      .then((resultDoc: IGameLobby)=>{
+        if(!resultDoc){
+          throw new Error("Missing Lobby")
+        }
+        return resultDoc.leaveLobby(user._id.toString()).then((gameLobby)=>{
+          const roomId = GAME_LOBBY_ROOM + "/"+gameId
+
+          roomHandler.join(GAME_LOBBY_ROOM, user._id)
+          roomHandler.leave(roomId, user._id)
+
+          socketHandler
+            .broadcastUsers(roomHandler.getUsersInRoom(roomId), "update")
+          socketHandler
+            .broadcastUsers(roomHandler.getUsersInRoom(GAME_LOBBY_ROOM), "update")
+
+            return gameLobby
+        })
+      })
+    },
+
+    cancel(user: IUser, gameId: string): Promise<IGameLobby>{
+      return GameLobbyModel.findById(gameId).then((resultDoc)=>{
+        console.log(resultDoc);
+        if(!resultDoc){
+          throw new Error("Missing Lobby")
+        }
+        if(resultDoc.creator.toString() !== user._id.toString()){
+          throw new Error("User is not the Creator");
+        }
+        return resultDoc.cancelLobby().then((gamelobby)=>{
+          const roomId = GAME_LOBBY_ROOM + "/"+gameId
+
+          socketHandler
+            .broadcastUsers(roomHandler.getUsersInRoom(roomId), "leave")
+          socketHandler
+            .broadcastUsers(roomHandler.getUsersInRoom(GAME_LOBBY_ROOM), "update")
+
+          roomHandler.join(GAME_LOBBY_ROOM, user._id)
+          roomHandler.leave(roomId, user._id)
+          return gamelobby
+        })
+      })
+    },
+
+    start(user: IUser, gameId: string): Promise<IGameLobby>{
+      return GameLobbyModel.findById(gameId).then((resultDoc)=>{
+        if(!resultDoc){
+          throw new Error("Missing Lobby")
+        }
+        if(resultDoc.creator.toString() !== user._id.toString()){
+          throw new Error("User is not the Creator");
+        }
+        return resultDoc.startLobby().then((gamelobby)=>{
+          const lobbyId = GAME_LOBBY_ROOM + "/" + gameId;
+
+          socketHandler
+            .broadcastUsers(roomHandler.getUsersInRoom(lobbyId), "start")
+          socketHandler
+            .broadcastUsers(roomHandler.getUsersInRoom(GAME_LOBBY_ROOM), "update")
+
+          roomHandler.leave(GAME_LOBBY_ROOM, user._id)
+          roomHandler.join(lobbyId, user._id)
+          return gamelobby
+        })
       })
     }
-    var user = (req.user as IUser);
-    GameLobbyModel.findById(req.params.id).then((resultDoc)=>{
-      if(!resultDoc){
-        return res.status(404).json({
-          error: true,
-          message: "Missing Lobby"
-        })
-      }
-      if(resultDoc.creator.toString() !== user._id.toString()){
-        throw new Error(
-          `the user ${user._id} is not the creator ${resultDoc.creator}`
-        );
-      }
-      return resultDoc.startLobby().then(()=>{
-        const lobbyId = GAME_LOBBY_ROOM + "/" + req.params.id;
-        var io = socketHandler.getIO();
-        io.in(lobbyId).allSockets().then((socketIds: Set<string>)=>{
-          Array.from(socketIds).forEach((id)=>{
-            const socket = io.sockets.get(id);
-            socket.leave(lobbyId)
-          })
-          socketHandler.getIO()
-            .to(GAME_LOBBY_ROOM)
-            .emit("update")
-        });
-        res.status(200).json(resultDoc);
-      })
-    }).catch((error)=>{
-      res.status(400).json({
-        error: true,
-        message: error.message || error.toString()
-      })
-    })
-  })
+  }
 
-  router.use((req, res, next)=>{
-    res.status(404).send({
-      error: true,
-      message: "Non Existant Link"
-    })
-  })
-
-  return { router };
+  return controller;
 }
 
 export {
-  setupGameLobby
+  setupController
 }

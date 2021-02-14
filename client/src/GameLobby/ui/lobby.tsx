@@ -127,16 +127,31 @@ class GameLobbyUI extends Component<{ socket: Socket, match: HistoryMatch, self:
     }
   } = { lobby: void 0 }
 
-  socketListener = ()=>{
+  updateListener = ()=>{
     return this.refreshGameLobby()
   }
 
+  leaveListener = ()=>{
+    return history.push("/lobby")
+  }
+
+  startListener = ()=>{
+    console.log("starting lobby")
+  }
+
+
   componentDidMount(){
-    this.props.socket.on("update", this.socketListener)
+    this.props.socket.on("update", this.updateListener)
+    this.props.socket.on("leave", this.leaveListener)
+    this.props.socket.on("start", this.startListener)
+
+    return this.updateListener()
   }
 
   componentWillUnmount(){
-    this.props.socket.off("update", this.socketListener)
+    this.props.socket.off("update", this.updateListener)
+    this.props.socket.off("leave", this.leaveListener)
+    this.props.socket.off("start", this.startListener)
   }
 
   refreshGameLobby(){
@@ -144,6 +159,10 @@ class GameLobbyUI extends Component<{ socket: Socket, match: HistoryMatch, self:
     getGameLobby(id).then((lobby)=>{
       console.log("lobby:", lobby)
       this.setState({lobby})
+    }).catch((err)=>{
+      if(err.message === "Missing Lobby"){
+        history.push("/lobby/")
+      }
     });
   }
 

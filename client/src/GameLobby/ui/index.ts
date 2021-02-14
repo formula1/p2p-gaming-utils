@@ -1,5 +1,7 @@
 import {
-  GameLobbyList
+  AvailableGameLobbyList,
+  JoinedGameLobbyList,
+  OwnGameLobbyList
 } from "./list";
 
 import {
@@ -12,6 +14,10 @@ import {
 
 export {
   GameLobby,
-  GameLobbyList,
-  CreateLobbyFormHistoryComponent
+  CreateLobbyFormHistoryComponent,
+
+  AvailableGameLobbyList,
+  JoinedGameLobbyList,
+  OwnGameLobbyList
+
 }

@@ -13,11 +13,12 @@ type Socket = socketIO.Socket;
 type UserSocket = Socket & { user: IUser }
 
 class SocketHandler {
-  listeningForUpdates: {
+  userSockets: {
     [id: string]: UserSocket
   } = {};
 
-  clientListeners: Array<((client: UserSocket)=>any)> = [];
+  clientJoinListeners: Array<((client: UserSocket)=>any)> = [];
+  clientLeaveListeners: Array<((userID: string)=>any)> = [];
 
   io: Namespace;
 
@@ -50,28 +51,31 @@ class SocketHandler {
       var userClient: UserSocket = client as UserSocket;
       userClient.user = user;
 
-      this.listeningForUpdates[user._id.toString()] = userClient
+      this.userSockets[user._id.toString()] = userClient
 
-      this.clientListeners.forEach((l)=>{
+      this.clientJoinListeners.forEach((l)=>{
         return l(userClient)
       })
 
       client.on('disconnect', () => {
         // delete listeningForUpdates
-        delete this.listeningForUpdates[user._id.toString()];
+        delete this.userSockets[user._id.toString()];
+        this.clientLeaveListeners.forEach((l)=>{
+          return l(user._id.toString())
+        })
       });
     }).catch((err)=>{
       var uS = client as UserSocket
       console.error("socket-findUserByToken:", err);
       if(uS.user){
-        delete this.listeningForUpdates[uS.user._id.toString()];
+        delete this.userSockets[uS.user._id.toString()];
       }
       uS.disconnect()
     })
   }
 
   getById(id: string): UserSocket{
-    return this.listeningForUpdates[id];
+    return this.userSockets[id];
   }
 
   getIO(){
@@ -79,23 +83,40 @@ class SocketHandler {
   }
 
 
-  listenForClient(listener: ((client: Socket)=>any)){
-    this.clientListeners.push(listener);
+  listenForClientJoin(listener: ((client: Socket)=>any)){
+    this.clientJoinListeners.push(listener);
 
     return ()=>{
-      this.clientListeners = this.clientListeners.filter((l)=>{
+      this.clientJoinListeners = this.clientJoinListeners.filter((l)=>{
         return l !== listener
       })
     }
   }
 
+  listenForClientLeave(listener: ((client: Socket)=>any)){
+    this.clientJoinListeners.push(listener);
+
+    return ()=>{
+      this.clientJoinListeners = this.clientJoinListeners.filter((l)=>{
+        return l !== listener
+      })
+    }
+  }
+
+  broadcastUsers(userIds: Array<string>, key: string, ...vales: Array<any>){
+    userIds.forEach((userId)=>{
+      this.userSockets[userId].emit(key, ...vales);
+    })
+  }
+
   broadcastSockets(key: string, value?: any){
-    Object.values(this.listeningForUpdates).forEach((socket)=>{
+    Object.values(this.userSockets).forEach((socket)=>{
       socket.emit(key, value);
     })
   }
 }
 
 export {
-  SocketHandler
+  SocketHandler,
+  UserSocket
 }

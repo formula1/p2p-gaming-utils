@@ -1,7 +1,19 @@
 import {
-  GameLobbyList
+  GameLobby,
+  CreateLobbyFormHistoryComponent,
+
+  AvailableGameLobbyList,
+  JoinedGameLobbyList,
+  OwnGameLobbyList
+
 } from "./ui"
 
 export {
-  GameLobbyList
+  GameLobby,
+  CreateLobbyFormHistoryComponent,
+
+  AvailableGameLobbyList,
+  JoinedGameLobbyList,
+  OwnGameLobbyList
+
 }

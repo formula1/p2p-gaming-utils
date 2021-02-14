@@ -18,6 +18,10 @@ function getOwnGameLobbies(): Promise<Array<GameLobbyType>>{
   return authHandler.authorizedFetch("/gamelobby/own")
 }
 
+function getJoinedGameLobbies(): Promise<Array<GameLobbyType>>{
+  return authHandler.authorizedFetch("/gamelobby/joined")
+}
+
 function getGameLobby(id: string): Promise<GameLobbyType>{
   return authHandler.authorizedFetch("/gamelobby/" + id)
 }
@@ -85,6 +89,7 @@ function startGameLobby(id: string): Promise<Array<GameLobbyType>>{
 export {
   getAvailableGameLobbies,
   getOwnGameLobbies,
+  getJoinedGameLobbies,
 
   getGameLobby,
   joinGameLobby,

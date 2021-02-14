@@ -21,10 +21,10 @@ const ObjectId = Types.ObjectId;
 type ObjectId = Types.ObjectId;
 
 type MethodFunctions = {
-  startLobby: ()=>any,
-  joinLobby: (userId: string)=>Promise<any>,
-  leaveLobby: (userId: string)=>Promise<any>
-  cancelLobby: ()=>any
+  startLobby: ()=>Promise<IGameLobby>,
+  joinLobby: (userId: string)=>Promise<IGameLobby>,
+  leaveLobby: (userId: string)=>Promise<IGameLobby>
+  cancelLobby: ()=>Promise<IGameLobby>
 }
 
 interface IGameLobby extends Document, MethodFunctions {
@@ -63,7 +63,7 @@ const GameLobbySchema = new Schema({
 
 const joinLobbyQueue = new Queue();
 
-GameLobbySchema.methods.startLobby = async function(){
+GameLobbySchema.methods.startLobby = async function(): Promise<IGameLobby>{
   var _this = (this as IGameLobby);
   return joinLobbyQueue.run(()=>{
     const GameLobbyModel = model("GameLobby");
@@ -78,28 +78,30 @@ GameLobbySchema.methods.startLobby = async function(){
   });
 };
 
-GameLobbySchema.methods.joinLobby = function(user: string) {
+GameLobbySchema.methods.joinLobby = function(user: string): Promise<IGameLobby> {
   var _this = (this as IGameLobby);
 
   return joinLobbyQueue.run(()=>{
     if(_this.started){
       throw new Error("The game has already started");
     }
-    if(_this.maxUsers === _this.users.length){
-      throw new Error("already at max users");
-    }
+    console.log("users:", _this.users, ", user:", user)
+
     if(_this.users.some((userId)=>{
       return userId.toString() == user;
     })){
       console.log("already joined")
     }else{
+      if(_this.maxUsers === _this.users.length){
+        throw new Error("already at max users");
+      }
       _this.users.push(ObjectId(user));
     }
     return _this.save();
   })
 };
 
-GameLobbySchema.methods.leaveLobby = function(user: string) {
+GameLobbySchema.methods.leaveLobby = function(user: string): Promise<IGameLobby> {
   var _this = (this as IGameLobby);
 
   return joinLobbyQueue.run(()=>{
@@ -120,7 +122,7 @@ GameLobbySchema.methods.leaveLobby = function(user: string) {
   })
 };
 
-GameLobbySchema.methods.cancelLobby = async function(){
+GameLobbySchema.methods.cancelLobby = async function(): Promise<IGameLobby>{
   const GameLobbyModel = model("GameLobby");
   return await GameLobbyModel.deleteOne({ _id: this._id });
 }
@@ -128,6 +130,7 @@ GameLobbySchema.methods.cancelLobby = async function(){
 type StaticFunctions = {
   getAvailableGames: ()=>Promise<Array<Document<IGameLobby>>>,
   getHostedGames: (creatorId: string)=>Promise<Array<Document<IGameLobby>>>
+  getJoinedGames: (userId: string)=>Promise<Array<Document<IGameLobby>>>
 }
 
 GameLobbySchema.static(
@@ -157,6 +160,18 @@ GameLobbySchema.static(
   }
 );
 
+GameLobbySchema.static(
+  'getJoinedGames', function(userId: string): Promise<Array<Document<IGameLobby>>> {
+    const GameLobbyModel = model("GameLobby");
+    var q = GameLobbyModel.find({
+      users: userId,
+    })
+    return q.exec().then((gameLobbies: Array<Document<IGameLobby>>): Array<Document<IGameLobby>>=>{
+      console.log(gameLobbies);
+      return gameLobbies;
+    });
+  }
+);
 
 
 const GameLobbyModel: Model<IGameLobby> & StaticFunctions = model('GameLobby', GameLobbySchema) as any;

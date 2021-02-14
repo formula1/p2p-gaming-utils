@@ -1,6 +1,6 @@
 import {
   setupGameLobbyRouter
-} from "./lobby"
+} from "./router";
 
 export {
   setupGameLobbyRouter

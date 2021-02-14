@@ -20,9 +20,9 @@ import {
   fetchServer
 } from "../API/api"
 
-
 import {
   Router,
+  Redirect,
   Switch,
   Route
 } from "react-router-dom";
@@ -34,7 +34,11 @@ import {
 } from "../Test/Gamepad"
 
 import {
-  GameLobbyList,
+
+  AvailableGameLobbyList,
+  JoinedGameLobbyList,
+  OwnGameLobbyList,
+
   CreateLobbyFormHistoryComponent,
   GameLobby
 } from "../GameLobby/ui"
@@ -77,13 +81,22 @@ class MainRouter extends Component {
                 <App user={user}>
                   <Switch>
                     <Route exact path="/">
-                      <GameLobbyList />
+                      <Redirect to="/lobby/available" />
                     </Route>
                     <Route exact path="/game-pad">
                       <MultipleGamePadsTestUI />
                     </Route>
                     <Route exact path="/lobby">
-                      <GameLobbyList />
+                      <Redirect to="/lobby/available" />
+                    </Route>
+                    <Route exact path="/lobby/available">
+                      <AvailableGameLobbyList />
+                    </Route>
+                    <Route exact path="/lobby/own">
+                      <OwnGameLobbyList />
+                    </Route>
+                    <Route exact path="/lobby/joined">
+                      <JoinedGameLobbyList />
                     </Route>
                     <Route exact path="/lobby/create">
                       <CreateLobbyFormHistoryComponent />

@@ -57,7 +57,6 @@ function setupPassport(arg: CreateRouterArg): PassportSetupReturn{
   passport.use(strategy)
 
   router.post('/login', upload.none(), (req, res)=>{
-    console.log("login")
     var { email, password } = req.body;
     UserLoginBasicModel.loginUser(
       {email, password}
@@ -73,8 +72,6 @@ function setupPassport(arg: CreateRouterArg): PassportSetupReturn{
 
 
   router.post('/register', upload.none(), (req, res)=>{
-
-    console.log("register")
     var { username, email, password } = req.body;
     UserLoginBasicModel.registerUser(
       {username, email, password}
