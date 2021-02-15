@@ -20,7 +20,7 @@ import {
 import {
   PassportSetupReturn
 } from "./passport-strategy/types";
-import { setupGameLobbyRouter } from "./game";
+import { setupGameLobbyRouter } from "./gamelobby";
 
 import {
   indexHTML
