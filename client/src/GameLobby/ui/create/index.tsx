@@ -1,12 +1,14 @@
 import React, { Component, FormEvent } from "react";
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import history from "../../router/history";
+import history from "../../../router/history";
 
 import {
   createGameLobby,
   joinGameLobby
-} from "../api";
+} from "../../api";
+
+import { FileInput } from "./file"
 
 type ChangeEvent = React.ChangeEvent;
 
@@ -14,7 +16,7 @@ import {
   TypeOfGame,
   EditableGameLobbyType,
   TypeOfGameValues
-} from "../types";
+} from "../../types";
 
 type onChangePropsFunction = (v: EditableGameLobbyType)=>any
 
@@ -90,6 +92,18 @@ function   CreateLobbyForm(props: CreateFormProps){
             <option value="RollBack">Roll Back</option>
           </select>
         </li>
+        <li>
+          <span>Game File</span>
+          <FileInput
+            value={props.value.game}
+            onChange={(file: File)=>{
+              props.onChange && props.onChange({
+                ...props.value,
+                game: file
+              })
+            }}
+          />
+        </li>
       </ul>
       <button type="submit">Submit</button>
     </form>
@@ -101,7 +115,8 @@ class CreateLobbyFormComponent extends Component<RouteComponentProps> {
     name: "",
     minUsers: 2,
     maxUsers: 2,
-    typeOfGame: TypeOfGame.TurnBased
+    typeOfGame: TypeOfGame.TurnBased,
+    game: void 0
   }
 
   render(){
