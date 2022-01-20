@@ -32,10 +32,7 @@ class Turn {
   }
   expectingPlayers: Array<string>;
   expectingPlayersValues: {
-    [string: id]: {
-      move: string,
-      decryptionKey: string
-    }
+    [id: string]: PlayerTurn
   } = {}
 
   constructor(
