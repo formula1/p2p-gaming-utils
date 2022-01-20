@@ -7,4 +7,11 @@
   - Number of Players per game
     - minimum
     - maximum
+
+- ensure.json
+  - Game.js Hash
+  -  Game.js fileSize
+
+- Game.js
+
 - Resources folder
