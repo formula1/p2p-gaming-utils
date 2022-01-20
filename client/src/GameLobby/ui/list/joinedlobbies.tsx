@@ -59,7 +59,10 @@ class JoinedGameLobbyListComponent extends Component<{socket: Socket}> {
 
   render(){
     return (
-      <RenderList lobbies={this.state.lobbies} />
+      <div>
+        <h1>Lobbies you've joined</h1>
+        <RenderList lobbies={this.state.lobbies} />
+      </div>
     )
   }
 }
