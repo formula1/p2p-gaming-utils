@@ -17,7 +17,8 @@ type EditableGameLobbyType = {
   name: string;
   minUsers: number,
   maxUsers: number;
-  typeOfGame: TypeOfGame
+  typeOfGame: TypeOfGame,
+  game: File | void
 }
 
 type UneditableGameLobbyType = {
