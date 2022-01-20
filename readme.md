@@ -1,3 +1,15 @@
+# How to start it?
+
+Its been such a long time since I've worked on this project that I have no idea.
+
+
+Probably a
+- in terminal - `sudo docker-compose up`
+- in a browser go to - `http://localhost:${the public port}`
+  - although it seems no public port has been set which is an oversite on my part
+  - I plan to come back to this, just not yet
+
+
 # General Idea
 
 - Players create a game
