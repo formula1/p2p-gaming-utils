@@ -55,8 +55,9 @@ class Turn {
       })){
         throw new Error("")
       }
-
-      Promise.resolveObject.values(this.allPlayers).
+      return this.broadcastMoveToPlayers(
+        move, Object.values(this.allPlayers)
+      );
     })
   }
   broadcastMoveToPlayers(move: string, players: Array<Player>){
