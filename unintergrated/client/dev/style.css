@@ -1,0 +1,12 @@
+html
+{
+ overflow: auto;
+}
+
+html, body, #init
+{
+ margin: 0px;
+ padding: 0px;
+ border: none;
+ height: 100%;
+}

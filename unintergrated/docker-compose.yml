@@ -1,0 +1,37 @@
+version: '3'
+services:
+  client:
+    image: "node:16.6"
+    user: "node"
+    working_dir: /home/node/app
+    volumes:
+      - ./client:/home/node/app
+    command: "npm run start:dev"
+    env_file:
+        - ./env-files/shared.public.env
+    ports:
+      - 3000:8080
+    restart: always
+
+  live_server:
+    image: "node:16.6"
+    user: "node"
+    depends_on:
+      - mongo
+    working_dir: /home/node/app
+    volumes:
+      - ./servers/main-server:/home/node/app
+    command: "npm run start:dev"
+    env_file:
+        - ./env-files/shared.public.env
+        - ./env-files/db.private.env
+    ports:
+      - 8080:8080
+
+  mongo:
+    image: mongo
+    restart: always
+    env_file:
+        - ./env-files/db.private.env
+    ports:
+        - "27017:27017"

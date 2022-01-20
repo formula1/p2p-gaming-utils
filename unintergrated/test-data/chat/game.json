@@ -1,0 +1,6 @@
+{
+  "name": "hello world",
+  "version": "0.0.1" ,
+  "players": 2,
+  "turnType": "NO_RESTRICTION"
+}
