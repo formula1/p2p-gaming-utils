@@ -32,8 +32,14 @@ class PlayerGroup {
 
   constructor(players: Array<Player>){
     players.map((player: Player)=>{
-      this.players[player.id] = player;
-      player.listenToAction
+      this.addPlayer(player);
+    })
+  }
+
+  addPlayer(player: Player){
+    this.players[player.id] = player;
+    player.listenToAction((action, frame)=>{
+      this.onRecieveAction(player.id, action, frame)
     })
   }
 
