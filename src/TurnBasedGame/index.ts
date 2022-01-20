@@ -22,7 +22,7 @@ interface Player {
 type PlayerTurn = {
   id: string
   encryptedMove: string,
-  decryptionKey: string
+  decryptionKey: string | void
 }
 
 class Turn {
