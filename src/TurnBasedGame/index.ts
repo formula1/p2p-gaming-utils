@@ -70,8 +70,29 @@ class Turn {
     },players)
   }
 
+  onRecieveMove(playerId: string, move: string){
+    if(
+      !this.expectingPlayersValues[playerId]
+    ){
+      this.expectingPlayersValues[playerId] = {
+        encryptedMove: move,
+        decryptionKey: void 0
       }
-    })
+    }
+    if(
+      Object.keys(this.expectingPlayersValues).length < this.expectingPlayers.length
+    ){
+      return;
+    }
+    if(
+      !this.expectingPlayers.some((playerId)=>{ this.selfId === playerId })
+    )
+    this.sendEncryptionKey();
+
+  }
+
+  onRecieveDecryptionKey(playerId: string, decryptionKey: string){
+
   }
 
   sendEncryptionKey(){
