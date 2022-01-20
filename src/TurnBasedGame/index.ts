@@ -96,6 +96,17 @@ class Turn {
   }
 
   sendEncryptionKey(){
+    if(!this.expectingPlayers.some((playerId)=>{
+      if(!this.expectingPlayersValues[playerId]){
+        return true
+      }
+      if(typeof this.expectingPlayersValues[playerId].move === "undefined"){
+        return true
+      }
+      return false
+    })){
+      throw new Error("Cannot send EncryptionKey unless all moves are recieved")
+    }
 
   }
 
