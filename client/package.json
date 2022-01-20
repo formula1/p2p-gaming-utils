@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "history": "^4.7.8",
-    "moment": "^2.24.0",
+    "jszip": "^3.6.0",
+    "moment": "^2.29.1",
     "promise-utils": "github:formula1/promise-utils",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
@@ -26,17 +27,21 @@
     "redux": "^4.0.4",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
-    "socket.io-client": "^3.1.0"
+    "socket.io-client": "^3.1.0",
+    "webtorrent": "^0.115.3"
   },
   "devDependencies": {
     "@types/history": "^4.7.8",
     "@types/jquery": "^3.5.0",
+    "@types/jszip": "^3.4.1",
+    "@types/moment": "^2.13.0",
     "@types/node": "^14.0.14",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/react-router": "^5.1.11",
     "@types/react-router-dom": "^5.1.7",
     "@types/socket.io": "^2.1.13",
+    "@types/webtorrent": "^0.109.0",
     "brfs": "^2.0.2",
     "browserify": "^16.5.0",
     "browserify-css": "^0.15.0",
