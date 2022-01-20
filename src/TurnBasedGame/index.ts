@@ -40,10 +40,13 @@ class Turn {
     expectingPlayers: Array<string>
   ){
     this.expectingPlayers = expectingPlayers;
-    this.allPlayers = allPlayers.reduce(()=>{
-
+    this.allPlayers = allPlayers.reduce((players, player)=>{
+      players[player.id] = player;
+      return players;
     }, {})
   }
+
+
 
   sendMove(move: string){
     return Promise.resolve().then(()=>{
