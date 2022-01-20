@@ -1,4 +1,4 @@
-export const SHARED_VALUES = [
+export const SHARED_BROWSER_VALUES = [
   "applicationCache",
   "caches",
   "closed",
