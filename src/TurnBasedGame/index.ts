@@ -11,6 +11,10 @@ Turnbased
 
 */
 
+import {
+  runUntilAllFinish
+} from "../util/Promise";
+
 type MoveListener = (move: string)=>void
 
 interface Player {
@@ -61,17 +65,11 @@ class Turn {
     })
   }
   broadcastMoveToPlayers(move: string, players: Array<Player>){
-    var playersWith Error: Array<Player> = []
-    return Promise.all(players.map((player)=>{
-      return player.sendMove(move).catch((error)=>{
-        console.error(error);
-        playersWithError.push(player)
-      })
-    })).then(()=>{
-      if(playersWithError.length > 0){
-        return this.broadcastMoveToPlayers(
-          move, playersWithError
-        )
+    return runUntilAllFinish((player:Player)=>{
+      return player.sendMove(move)
+    },players)
+  }
+
       }
     })
   }
