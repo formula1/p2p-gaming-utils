@@ -42,6 +42,10 @@ class RockPaperScissors extends SameTurnGameAbstract {
 
   roundValues: ActionsReduce;
 
+  constructor(){
+
+  }
+
   doAction(action: POSSIBLE_ACTIONS_TYPE){
     this.broadcastMove({
       move: action
